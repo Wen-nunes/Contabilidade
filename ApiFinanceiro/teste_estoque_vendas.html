@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Estoque e Vendas</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; background-color: #f5f5f5; border-radius: 3px; }
+        .error { color: red; }
+        .success { color: green; }
+        button { padding: 10px 15px; margin: 5px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        input { padding: 5px; margin: 5px; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Teste Estoque e Vendas</h1>
+    
+    <div class="test-section">
+        <h3>1. Verificar Estoque Atual</h3>
+        <button onclick="verificarEstoque()">Verificar Estoque</button>
+        <div id="estoqueAtual" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. Criar Compra (Adicionar ao Estoque)</h3>
+        <input type="number" id="fornecedorIdCompra" placeholder="ID do Fornecedor" value="1">
+        <input type="text" id="nomeMercadoriaCompra" placeholder="Nome da Mercadoria" value="Produto Teste">
+        <input type="text" id="descricaoCompra" placeholder="Descrição" value="Descrição do produto">
+        <input type="number" id="precoCompra" placeholder="Preço de Compra" value="50.00" step="0.01">
+        <input type="number" id="precoVenda" placeholder="Preço de Venda" value="80.00" step="0.01">
+        <input type="number" id="quantidadeCompra" placeholder="Quantidade" value="10">
+        <select id="formaPagamentoCompra">
+            <option value="vista">À Vista</option>
+            <option value="prazo">A Prazo</option>
+        </select>
+        <input type="number" id="numeroParcelasCompra" placeholder="Número de Parcelas" value="3" style="display:none;">
+        <button onclick="criarCompra()">Criar Compra</button>
+        <div id="resultadoCompra" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. Criar Venda (Diminuir do Estoque)</h3>
+        <input type="number" id="fornecedorIdVenda" placeholder="ID do Fornecedor" value="1">
+        <input type="text" id="nomeMercadoriaVenda" placeholder="Nome da Mercadoria" value="Produto Teste">
+        <input type="number" id="quantidadeVenda" placeholder="Quantidade" value="2">
+        <input type="number" id="precoUnitarioVenda" placeholder="Preço Unitário" value="80.00" step="0.01">
+        <select id="formaPagamentoVenda">
+            <option value="debito">À Vista</option>
+            <option value="credito">A Prazo</option>
+        </select>
+        <input type="number" id="numeroParcelasVenda" placeholder="Número de Parcelas" value="3" style="display:none;">
+        <button onclick="criarVenda()">Criar Venda</button>
+        <div id="resultadoVenda" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>4. Testar Relatório de Vendas</h3>
+        <input type="number" id="fornecedorIdRelatorio" placeholder="ID do Fornecedor" value="1">
+        <button onclick="testarRelatorioVendas()">Testar Relatório</button>
+        <div id="relatorioVendas" class="result"></div>
+    </div>
+
+    <script>
+        // Mostrar/ocultar campo de parcelas para compra
+        document.getElementById('formaPagamentoCompra').addEventListener('change', function() {
+            const parcelasField = document.getElementById('numeroParcelasCompra');
+            if (this.value === 'prazo') {
+                parcelasField.style.display = 'inline';
+            } else {
+                parcelasField.style.display = 'none';
+            }
+        });
+
+        // Mostrar/ocultar campo de parcelas para venda
+        document.getElementById('formaPagamentoVenda').addEventListener('change', function() {
+            const parcelasField = document.getElementById('numeroParcelasVenda');
+            if (this.value === 'credito') {
+                parcelasField.style.display = 'inline';
+            } else {
+                parcelasField.style.display = 'none';
+            }
+        });
+
+        function verificarEstoque() {
+            fetch('/mercadorias/estoque')
+                .then(response => response.text())
+                .then(data => {
+                    console.log('Estoque atual:', data);
+                    document.getElementById('estoqueAtual').innerHTML = `<pre>${data}</pre>`;
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    document.getElementById('estoqueAtual').innerHTML = `<p class="error">Erro: ${error.message}</p>`;
+                });
+        }
+
+        function criarCompra() {
+            const fornecedorId = document.getElementById('fornecedorIdCompra').value;
+            const nomeMercadoria = document.getElementById('nomeMercadoriaCompra').value;
+            const descricao = document.getElementById('descricaoCompra').value;
+            const precoCompra = parseFloat(document.getElementById('precoCompra').value);
+            const precoVenda = parseFloat(document.getElementById('precoVenda').value);
+            const quantidade = parseInt(document.getElementById('quantidadeCompra').value);
+            const formaPagamento = document.getElementById('formaPagamentoCompra').value;
+            const numeroParcelas = parseInt(document.getElementById('numeroParcelasCompra').value) || 0;
+            
+            if (!fornecedorId || !nomeMercadoria || !precoCompra || !precoVenda || !quantidade) {
+                alert('Por favor, preencha todos os campos obrigatórios');
+                return;
+            }
+            
+            const compra = {
+                nomeMercadoria: nomeMercadoria,
+                descricao: descricao,
+                precoCompra: precoCompra,
+                precoVenda: precoVenda,
+                quantidade: quantidade,
+                pagamentoVista: formaPagamento === 'vista',
+                pagamentoPrazo: formaPagamento === 'prazo',
+                numeroParcelas: formaPagamento === 'prazo' ? numeroParcelas : 0,
+                fornecedor: { id: parseInt(fornecedorId) }
+            };
+            
+            console.log('Criando compra:', compra);
+            
+            fetch('/compras', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(compra)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Erro ao criar compra');
+                }
+            })
+            .then(compraCriada => {
+                console.log('Compra criada:', compraCriada);
+                document.getElementById('resultadoCompra').innerHTML = `
+                    <p class="success">Compra criada com sucesso!</p>
+                    <p><strong>ID:</strong> ${compraCriada.id}</p>
+                    <p><strong>Mercadoria:</strong> ${compraCriada.nomeMercadoria}</p>
+                    <p><strong>Quantidade:</strong> ${compraCriada.quantidade}</p>
+                    <p><strong>Valor Total:</strong> R$ ${compraCriada.valorTotal.toFixed(2)}</p>
+                    <p><strong>Pagamento:</strong> ${compraCriada.pagamentoVista ? 'À Vista' : 'A Prazo'}</p>
+                `;
+                
+                // Verificar estoque após a compra
+                setTimeout(verificarEstoque, 1000);
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                document.getElementById('resultadoCompra').innerHTML = `<p class="error">Erro: ${error.message}</p>`;
+            });
+        }
+
+        function criarVenda() {
+            const fornecedorId = document.getElementById('fornecedorIdVenda').value;
+            const nomeMercadoria = document.getElementById('nomeMercadoriaVenda').value;
+            const quantidade = parseInt(document.getElementById('quantidadeVenda').value);
+            const precoUnitario = parseFloat(document.getElementById('precoUnitarioVenda').value);
+            const formaPagamento = document.getElementById('formaPagamentoVenda').value;
+            const numeroParcelas = parseInt(document.getElementById('numeroParcelasVenda').value) || 0;
+            
+            if (!fornecedorId || !nomeMercadoria || !quantidade || !precoUnitario) {
+                alert('Por favor, preencha todos os campos obrigatórios');
+                return;
+            }
+            
+            const venda = {
+                nomeMercadoria: nomeMercadoria,
+                quantidade: quantidade,
+                precoUnitario: precoUnitario,
+                debito: formaPagamento === 'debito',
+                credito: formaPagamento === 'credito',
+                numero_parcelas: formaPagamento === 'credito' ? numeroParcelas : 0,
+                fornecedor: { id: parseInt(fornecedorId) },
+                cliente: { id: 1 } // Cliente padrão
+            };
+            
+            console.log('Criando venda:', venda);
+            
+            fetch('/vendas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(venda)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Erro ao criar venda');
+                }
+            })
+            .then(vendaCriada => {
+                console.log('Venda criada:', vendaCriada);
+                document.getElementById('resultadoVenda').innerHTML = `
+                    <p class="success">Venda criada com sucesso!</p>
+                    <p><strong>ID:</strong> ${vendaCriada.id}</p>
+                    <p><strong>Mercadoria:</strong> ${vendaCriada.nomeMercadoria}</p>
+                    <p><strong>Quantidade:</strong> ${vendaCriada.quantidade}</p>
+                    <p><strong>Valor Total:</strong> R$ ${vendaCriada.valor_total.toFixed(2)}</p>
+                    <p><strong>ICMS:</strong> R$ ${vendaCriada.icms.toFixed(2)}</p>
+                    <p><strong>Pagamento:</strong> ${vendaCriada.debito ? 'À Vista' : 'A Prazo'}</p>
+                `;
+                
+                // Verificar estoque após a venda
+                setTimeout(verificarEstoque, 1000);
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                document.getElementById('resultadoVenda').innerHTML = `<p class="error">Erro: ${error.message}</p>`;
+            });
+        }
+
+        function testarRelatorioVendas() {
+            const fornecedorId = document.getElementById('fornecedorIdRelatorio').value;
+            
+            if (!fornecedorId) {
+                alert('Por favor, informe o ID do fornecedor');
+                return;
+            }
+            
+            console.log('Testando relatório de vendas para fornecedor:', fornecedorId);
+            
+            fetch(`/vendas/fornecedor/${fornecedorId}`)
+                .then(response => response.json())
+                .then(vendas => {
+                    console.log('Vendas recebidas:', vendas);
+                    console.log('Total de vendas:', vendas.length);
+                    
+                    let html = `<h4>Relatório de Vendas - Fornecedor ${fornecedorId}</h4>`;
+                    html += `<p><strong>Total de Vendas:</strong> ${vendas.length}</p>`;
+                    
+                    if (vendas.length > 0) {
+                        html += '<table><thead><tr><th>ID</th><th>Data</th><th>Mercadoria</th><th>Qtd</th><th>Valor</th><th>ICMS</th><th>Pagamento</th></tr></thead><tbody>';
+                        
+                        vendas.forEach(venda => {
+                            const data = new Date(venda.dataVenda).toLocaleDateString();
+                            const pagamento = venda.debito ? 'À Vista' : 'A Prazo';
+                            
+                            html += `<tr>
+                                <td>${venda.id}</td>
+                                <td>${data}</td>
+                                <td>${venda.nomeMercadoria || 'N/A'}</td>
+                                <td>${venda.quantidade || 0}</td>
+                                <td>R$ ${(venda.valor_total || 0).toFixed(2)}</td>
+                                <td>R$ ${(venda.icms || 0).toFixed(2)}</td>
+                                <td>${pagamento}</td>
+                            </tr>`;
+                        });
+                        
+                        html += '</tbody></table>';
+                    } else {
+                        html += '<p>Nenhuma venda encontrada para este fornecedor</p>';
+                    }
+                    
+                    document.getElementById('relatorioVendas').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    document.getElementById('relatorioVendas').innerHTML = `<p class="error">Erro: ${error.message}</p>`;
+                });
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Venda</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin: 10px 0; }
+        label { display: inline-block; width: 150px; }
+        input, select { padding: 5px; margin: 5px; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        .result { margin: 10px 0; padding: 10px; background-color: #f5f5f5; border-radius: 3px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Teste Venda</h1>
+    
+    <div class="form-group">
+        <label>Fornecedor ID:</label>
+        <input type="number" id="fornecedorId" value="1">
+    </div>
+    
+    <div class="form-group">
+        <label>Cliente ID:</label>
+        <input type="number" id="clienteId" value="1">
+    </div>
+    
+    <div class="form-group">
+        <label>Nome da Mercadoria:</label>
+        <input type="text" id="nomeMercadoria" value="Produto Teste">
+    </div>
+    
+    <div class="form-group">
+        <label>Quantidade:</label>
+        <input type="number" id="quantidade" value="2">
+    </div>
+    
+    <div class="form-group">
+        <label>Preço Unitário:</label>
+        <input type="number" id="precoUnitario" value="50.00" step="0.01">
+    </div>
+    
+    <div class="form-group">
+        <label>Forma de Pagamento:</label>
+        <select id="formaPagamento">
+            <option value="debito">À Vista</option>
+            <option value="credito">A Prazo</option>
+        </select>
+    </div>
+    
+    <div class="form-group" id="parcelasContainer" style="display: none;">
+        <label>Número de Parcelas:</label>
+        <input type="number" id="numeroParcelas" value="3" min="1" max="10">
+    </div>
+    
+    <button onclick="criarVenda()">Criar Venda</button>
+    
+    <div id="resultado" class="result"></div>
+    
+    <script>
+        // Mostrar/esconder campo de parcelas
+        document.getElementById('formaPagamento').addEventListener('change', function() {
+            document.getElementById('parcelasContainer').style.display = 
+                this.value === 'credito' ? 'block' : 'none';
+        });
+        
+        function criarVenda() {
+            const fornecedorId = parseInt(document.getElementById('fornecedorId').value);
+            const clienteId = parseInt(document.getElementById('clienteId').value);
+            const nomeMercadoria = document.getElementById('nomeMercadoria').value;
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const precoUnitario = parseFloat(document.getElementById('precoUnitario').value);
+            const formaPagamento = document.getElementById('formaPagamento').value;
+            const numeroParcelas = parseInt(document.getElementById('numeroParcelas').value) || 0;
+            
+            if (!fornecedorId || !clienteId || !nomeMercadoria || !quantidade || !precoUnitario) {
+                alert('Por favor, preencha todos os campos obrigatórios');
+                return;
+            }
+            
+            const venda = {
+                fornecedorId: fornecedorId,
+                clienteId: clienteId,
+                nomeMercadoria: nomeMercadoria,
+                quantidade: quantidade,
+                precoUnitario: precoUnitario,
+                debito: formaPagamento === 'debito',
+                credito: formaPagamento === 'credito',
+                numeroParcelas: formaPagamento === 'credito' ? numeroParcelas : 0
+            };
+            
+            console.log('Enviando venda:', venda);
+            
+            fetch('/vendas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(venda)
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Venda criada:', data);
+                document.getElementById('resultado').innerHTML = `
+                    <p class="success">Venda criada com sucesso!</p>
+                    <p><strong>ID:</strong> ${data.id}</p>
+                    <p><strong>Mercadoria:</strong> ${data.nomeMercadoria}</p>
+                    <p><strong>Quantidade:</strong> ${data.quantidade}</p>
+                    <p><strong>Valor Total:</strong> R$ ${data.valor_total.toFixed(2)}</p>
+                    <p><strong>ICMS:</strong> R$ ${data.icms.toFixed(2)}</p>
+                    <p><strong>Fornecedor:</strong> ${data.fornecedor ? data.fornecedor.nome : 'N/A'}</p>
+                    <p><strong>Cliente:</strong> ${data.cliente ? data.cliente.nome : 'N/A'}</p>
+                    <p><strong>Pagamento:</strong> ${data.debito ? 'À Vista' : 'A Prazo'}</p>
+                `;
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                document.getElementById('resultado').innerHTML = `
+                    <p class="error">Erro ao criar venda: ${error.message}</p>
+                `;
+            });
+        }
+    </script>
+</body>
+</html> 

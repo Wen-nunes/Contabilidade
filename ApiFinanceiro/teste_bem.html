@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Cadastro de Bem</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin: 10px 0; }
+        label { display: inline-block; width: 120px; }
+        input, select { padding: 5px; margin: 5px; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        .result { margin: 10px 0; padding: 10px; background-color: #f5f5f5; border-radius: 3px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Teste Cadastro de Bem</h1>
+    
+    <div class="form-group">
+        <label>Fornecedor ID:</label>
+        <input type="number" id="fornecedorId" value="1">
+    </div>
+    
+    <div class="form-group">
+        <label>Nome do Bem:</label>
+        <input type="text" id="nomeBem" value="Carro Teste">
+    </div>
+    
+    <div class="form-group">
+        <label>Descrição:</label>
+        <input type="text" id="descricaoBem" value="Carro para transporte">
+    </div>
+    
+    <div class="form-group">
+        <label>Valor:</label>
+        <input type="number" id="valorBem" value="50000.00" step="0.01">
+    </div>
+    
+    <div class="form-group">
+        <label>Forma de Pagamento:</label>
+        <select id="formaPagamento">
+            <option value="vista">À Vista</option>
+            <option value="prazo">A Prazo</option>
+        </select>
+    </div>
+    
+    <div class="form-group" id="parcelasContainer" style="display: none;">
+        <label>Número de Parcelas:</label>
+        <input type="number" id="numeroParcelas" value="12" min="1" max="60">
+    </div>
+    
+    <button onclick="criarBem()">Criar Bem</button>
+    
+    <div id="resultado" class="result"></div>
+    
+    <script>
+        // Mostrar/esconder campo de parcelas
+        document.getElementById('formaPagamento').addEventListener('change', function() {
+            document.getElementById('parcelasContainer').style.display = 
+                this.value === 'prazo' ? 'block' : 'none';
+        });
+        
+        function criarBem() {
+            const fornecedorId = parseInt(document.getElementById('fornecedorId').value);
+            const nome = document.getElementById('nomeBem').value;
+            const descricao = document.getElementById('descricaoBem').value;
+            const valor = parseFloat(document.getElementById('valorBem').value);
+            const formaPagamento = document.getElementById('formaPagamento').value;
+            const numeroParcelas = parseInt(document.getElementById('numeroParcelas').value) || 0;
+            
+            if (!fornecedorId || !nome || !descricao || !valor) {
+                alert('Por favor, preencha todos os campos obrigatórios');
+                return;
+            }
+            
+            const bem = {
+                fornecedorId: fornecedorId,
+                nome: nome,
+                descricao: descricao,
+                valor: valor,
+                pagamentoVista: formaPagamento === 'vista',
+                pagamentoPrazo: formaPagamento === 'prazo',
+                numeroParcelas: formaPagamento === 'prazo' ? numeroParcelas : 0
+            };
+            
+            console.log('Enviando bem:', bem);
+            
+            fetch('/bens', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(bem)
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Bem criado:', data);
+                document.getElementById('resultado').innerHTML = `
+                    <p class="success">Bem criado com sucesso!</p>
+                    <p><strong>ID:</strong> ${data.id}</p>
+                    <p><strong>Nome:</strong> ${data.nome}</p>
+                    <p><strong>Valor:</strong> R$ ${data.valor.toFixed(2)}</p>
+                    <p><strong>Fornecedor:</strong> ${data.fornecedor ? data.fornecedor.nome : 'N/A'}</p>
+                    <p><strong>Pagamento:</strong> ${data.pagamentoVista ? 'À Vista' : 'A Prazo'}</p>
+                `;
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                document.getElementById('resultado').innerHTML = `
+                    <p class="error">Erro ao criar bem: ${error.message}</p>
+                `;
+            });
+        }
+    </script>
+</body>
+</html> 

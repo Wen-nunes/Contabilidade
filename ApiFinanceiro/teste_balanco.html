@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Balanço Patrimonial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Teste do Sistema de Balanço Patrimonial</h1>
+    
+    <div class="test-section">
+        <h3>1. Teste de Conectividade</h3>
+        <button onclick="testConnection()">Testar Conexão</button>
+        <div id="connection-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. Listar Fornecedores</h3>
+        <button onclick="listFornecedores()">Listar Fornecedores</button>
+        <div id="fornecedores-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. Testar Criação de Bem (Normal)</h3>
+        <div class="form-group">
+            <label for="fornecedor-bem-id">ID do Fornecedor:</label>
+            <input type="number" id="fornecedor-bem-id" value="1">
+        </div>
+        <div class="form-group">
+            <label for="bem-nome">Nome do Bem:</label>
+            <input type="text" id="bem-nome" value="Carro">
+        </div>
+        <div class="form-group">
+            <label for="bem-descricao">Descrição do Bem:</label>
+            <textarea id="bem-descricao" rows="3">Carro da empresa</textarea>
+        </div>
+        <div class="form-group">
+            <label for="bem-valor">Valor do Bem:</label>
+            <input type="number" id="bem-valor" value="50000" step="0.01">
+        </div>
+        <div class="form-group">
+            <label>Forma de Pagamento:</label>
+            <div>
+                <input type="radio" id="bem-vista" name="bem-pagamento" value="vista" checked>
+                <label for="bem-vista">À Vista</label>
+            </div>
+            <div>
+                <input type="radio" id="bem-prazo" name="bem-pagamento" value="prazo">
+                <label for="bem-prazo">A Prazo</label>
+            </div>
+        </div>
+        <div class="form-group" id="bem-parcelas-container" style="display: none;">
+            <label for="bem-parcelas">Número de Parcelas:</label>
+            <input type="number" id="bem-parcelas" value="12" min="1" max="60">
+        </div>
+        <button onclick="testCriarBem()">Criar Bem</button>
+        <div id="criar-bem-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>4. Testar Criação de Bem (Teste)</h3>
+        <div class="form-group">
+            <label for="fornecedor-bem-teste-id">ID do Fornecedor:</label>
+            <input type="number" id="fornecedor-bem-teste-id" value="1">
+        </div>
+        <div class="form-group">
+            <label for="bem-teste-nome">Nome do Bem:</label>
+            <input type="text" id="bem-teste-nome" value="Mesa">
+        </div>
+        <div class="form-group">
+            <label for="bem-teste-descricao">Descrição do Bem:</label>
+            <textarea id="bem-teste-descricao" rows="3">Mesa de escritório</textarea>
+        </div>
+        <div class="form-group">
+            <label for="bem-teste-valor">Valor do Bem:</label>
+            <input type="number" id="bem-teste-valor" value="1000" step="0.01">
+        </div>
+        <div class="form-group">
+            <label>Forma de Pagamento:</label>
+            <div>
+                <input type="radio" id="bem-teste-vista" name="bem-teste-pagamento" value="vista" checked>
+                <label for="bem-teste-vista">À Vista</label>
+            </div>
+            <div>
+                <input type="radio" id="bem-teste-prazo" name="bem-teste-pagamento" value="prazo">
+                <label for="bem-teste-prazo">A Prazo</label>
+            </div>
+        </div>
+        <div class="form-group" id="bem-teste-parcelas-container" style="display: none;">
+            <label for="bem-teste-parcelas">Número de Parcelas:</label>
+            <input type="number" id="bem-teste-parcelas" value="6" min="1" max="60">
+        </div>
+        <button onclick="testCriarBemTeste()">Criar Bem (Teste)</button>
+        <div id="criar-bem-teste-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>5. Testar Balanço Patrimonial</h3>
+        <input type="number" id="fornecedor-id" placeholder="ID do Fornecedor" value="1">
+        <button onclick="testBalanco()">Gerar Balanço</button>
+        <div id="balanco-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>6. Listar Bens</h3>
+        <input type="number" id="fornecedor-bens-id" placeholder="ID do Fornecedor" value="1">
+        <button onclick="listBens()">Listar Bens</button>
+        <div id="bens-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>7. Testar Cálculo Automático de Valor Total com ICMS</h3>
+        <div class="form-group">
+            <label for="teste-preco">Preço de Compra (R$):</label>
+            <input type="number" id="teste-preco" value="100" step="0.01">
+        </div>
+        <div class="form-group">
+            <label for="teste-quantidade">Quantidade:</label>
+            <input type="number" id="teste-quantidade" value="5" min="1">
+        </div>
+        <button onclick="testCalcularICMS()">Calcular Valor Total com ICMS</button>
+        <div id="calculo-icms-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>8. Testar Funcionalidade do Cliente</h3>
+        <div class="form-group">
+            <label for="teste-cliente-id">ID do Cliente:</label>
+            <input type="number" id="teste-cliente-id" value="1">
+        </div>
+        <div class="form-group">
+            <label for="teste-fornecedor-cliente-id">ID do Fornecedor:</label>
+            <input type="number" id="teste-fornecedor-cliente-id" value="1">
+        </div>
+        <div class="form-group">
+            <label for="teste-mercadoria-cliente">Nome da Mercadoria:</label>
+            <input type="text" id="teste-mercadoria-cliente" value="Produto Teste">
+        </div>
+        <div class="form-group">
+            <label for="teste-quantidade-cliente">Quantidade:</label>
+            <input type="number" id="teste-quantidade-cliente" value="3" min="1">
+        </div>
+        <div class="form-group">
+            <label for="teste-preco-cliente">Preço Unitário (R$):</label>
+            <input type="number" id="teste-preco-cliente" value="50" step="0.01">
+        </div>
+        <button onclick="testVendaCliente()">Testar Venda do Cliente</button>
+        <div id="venda-cliente-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>9. Testar Relatórios do Fornecedor</h3>
+        <div class="form-group">
+            <label for="teste-fornecedor-relatorio">ID do Fornecedor:</label>
+            <input type="number" id="teste-fornecedor-relatorio" value="1">
+        </div>
+        <div class="form-group">
+            <label for="teste-tipo-relatorio">Tipo de Relatório:</label>
+            <select id="teste-tipo-relatorio">
+                <option value="compras">Relatório de Compras</option>
+                <option value="vendas">Relatório de Vendas</option>
+                <option value="bens">Relatório de Bens</option>
+                <option value="geral">Relatório Geral</option>
+            </select>
+        </div>
+        <button onclick="testRelatorioFornecedor()">Testar Relatório</button>
+        <div id="relatorio-fornecedor-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>10. Testar Relatórios do Cliente</h3>
+        <div class="form-group">
+            <label for="teste-cliente-relatorio">ID do Cliente:</label>
+            <input type="number" id="teste-cliente-relatorio" value="1">
+        </div>
+        <div class="form-group">
+            <label for="teste-fornecedor-cliente-relatorio">ID do Fornecedor:</label>
+            <input type="number" id="teste-fornecedor-cliente-relatorio" value="1">
+        </div>
+        <button onclick="testRelatorioCliente()">Testar Relatório</button>
+        <div id="relatorio-cliente-result" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        
+        // Controle de exibição dos campos de parcelas
+        document.querySelectorAll('input[name="bem-pagamento"]').forEach(input => {
+            input.addEventListener('change', function() {
+                document.getElementById('bem-parcelas-container').style.display = 
+                    this.value === 'prazo' ? 'block' : 'none';
+            });
+        });
+        
+        document.querySelectorAll('input[name="bem-teste-pagamento"]').forEach(input => {
+            input.addEventListener('change', function() {
+                document.getElementById('bem-teste-parcelas-container').style.display = 
+                    this.value === 'prazo' ? 'block' : 'none';
+            });
+        });
+        
+        async function testConnection() {
+            const resultDiv = document.getElementById('connection-result');
+            try {
+                const response = await fetch(`${API_BASE}/fornecedores`);
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = '✅ Conexão bem-sucedida! API está funcionando.';
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Erro na conexão: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro de conexão: ${error.message}`;
+            }
+        }
+        
+        async function listFornecedores() {
+            const resultDiv = document.getElementById('fornecedores-result');
+            try {
+                const response = await fetch(`${API_BASE}/fornecedores`);
+                if (response.ok) {
+                    const fornecedores = await response.json();
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Fornecedores encontrados: ${fornecedores.length}\n${JSON.stringify(fornecedores, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Erro ao listar fornecedores: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        async function testCriarBem() {
+            const fornecedorId = document.getElementById('fornecedor-bem-id').value;
+            const nome = document.getElementById('bem-nome').value;
+            const descricao = document.getElementById('bem-descricao').value;
+            const valor = document.getElementById('bem-valor').value;
+            const formaPagamento = document.querySelector('input[name="bem-pagamento"]:checked').value;
+            const numeroParcelas = document.getElementById('bem-parcelas').value;
+            const resultDiv = document.getElementById('criar-bem-result');
+            
+            if (!fornecedorId || !nome || !valor) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Por favor, preencha todos os campos obrigatórios.';
+                return;
+            }
+            
+            const bem = {
+                nome: nome,
+                descricao: descricao,
+                valor: parseFloat(valor),
+                fornecedor: { id: parseInt(fornecedorId) },
+                pagamentoVista: formaPagamento === 'vista',
+                pagamentoPrazo: formaPagamento === 'prazo',
+                numeroParcelas: formaPagamento === 'prazo' ? parseInt(numeroParcelas) : 0
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/bens`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bem)
+                });
+                
+                if (response.ok) {
+                    const resultado = await response.json();
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Bem criado com sucesso!\n${JSON.stringify(resultado, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Erro ao criar bem: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        async function testCriarBemTeste() {
+            const fornecedorId = document.getElementById('fornecedor-bem-teste-id').value;
+            const nome = document.getElementById('bem-teste-nome').value;
+            const descricao = document.getElementById('bem-teste-descricao').value;
+            const valor = document.getElementById('bem-teste-valor').value;
+            const formaPagamento = document.querySelector('input[name="bem-teste-pagamento"]:checked').value;
+            const numeroParcelas = document.getElementById('bem-teste-parcelas').value;
+            const resultDiv = document.getElementById('criar-bem-teste-result');
+            
+            if (!fornecedorId || !nome || !valor) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Por favor, preencha todos os campos obrigatórios.';
+                return;
+            }
+            
+            const bem = {
+                nome: nome,
+                descricao: descricao,
+                valor: parseFloat(valor),
+                fornecedor: { id: parseInt(fornecedorId) },
+                pagamentoVista: formaPagamento === 'vista',
+                pagamentoPrazo: formaPagamento === 'prazo',
+                numeroParcelas: formaPagamento === 'prazo' ? parseInt(numeroParcelas) : 0
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/bens/teste`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bem)
+                });
+                
+                if (response.ok) {
+                    const resultado = await response.json();
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Bem criado com sucesso (teste)!\n${JSON.stringify(resultado, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Erro ao criar bem (teste): ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        async function testBalanco() {
+            const fornecedorId = document.getElementById('fornecedor-id').value;
+            const resultDiv = document.getElementById('balanco-result');
+            
+            if (!fornecedorId) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Por favor, insira um ID de fornecedor.';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/balanco/${fornecedorId}`);
+                if (response.ok) {
+                    const balanco = await response.json();
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Balanço gerado com sucesso!\n${JSON.stringify(balanco, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Erro ao gerar balanço: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        async function listBens() {
+            const fornecedorId = document.getElementById('fornecedor-bens-id').value;
+            const resultDiv = document.getElementById('bens-result');
+            
+            if (!fornecedorId) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Por favor, insira um ID de fornecedor.';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/bens/fornecedor/${fornecedorId}`);
+                if (response.ok) {
+                    const bens = await response.json();
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Bens encontrados: ${bens.length}\n${JSON.stringify(bens, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Erro ao listar bens: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        function testCalcularICMS() {
+            const preco = parseFloat(document.getElementById('teste-preco').value) || 0;
+            const quantidade = parseInt(document.getElementById('teste-quantidade').value) || 0;
+            const resultDiv = document.getElementById('calculo-icms-result');
+            
+            if (preco <= 0 || quantidade <= 0) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Por favor, insira valores válidos para preço e quantidade.';
+                return;
+            }
+            
+            const valorSubtotal = preco * quantidade;
+            const icms = valorSubtotal * 0.18; // 18% de ICMS
+            const valorTotalComICMS = valorSubtotal + icms;
+            
+            resultDiv.className = 'result success';
+            resultDiv.textContent = `✅ Cálculo realizado com sucesso!
+            
+📊 Detalhes do Cálculo:
+• Preço de Compra: R$ ${preco.toFixed(2)}
+• Quantidade: ${quantidade}
+• Valor Subtotal: R$ ${valorSubtotal.toFixed(2)}
+• ICMS (18%): R$ ${icms.toFixed(2)}
+• Valor Total com ICMS: R$ ${valorTotalComICMS.toFixed(2)}
+
+💡 Este valor total será usado como "preço unitário" na compra.`;
+        }
+
+        async function testVendaCliente() {
+            const clienteId = document.getElementById('teste-cliente-id').value;
+            const fornecedorId = document.getElementById('teste-fornecedor-cliente-id').value;
+            const mercadoria = document.getElementById('teste-mercadoria-cliente').value;
+            const quantidade = document.getElementById('teste-quantidade-cliente').value;
+            const precoUnitario = document.getElementById('teste-preco-cliente').value;
+            const resultDiv = document.getElementById('venda-cliente-result');
+            
+            if (!clienteId || !fornecedorId || !mercadoria || !quantidade || !precoUnitario) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Por favor, preencha todos os campos obrigatórios.';
+                return;
+            }
+            
+            // Calcular valor total com ICMS
+            const valorSubtotal = parseFloat(precoUnitario) * parseInt(quantidade);
+            const icms = valorSubtotal * 0.18;
+            const valorTotalComICMS = valorSubtotal + icms;
+            
+            const venda = {
+                cliente: { id: parseInt(clienteId) },
+                fornecedor: { id: parseInt(fornecedorId) },
+                nomeMercadoria: mercadoria,
+                quantidade: parseInt(quantidade),
+                precoUnitario: parseFloat(precoUnitario),
+                debito: true,
+                credito: false,
+                numero_parcelas: 0
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/vendas`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(venda)
+                });
+                
+                if (response.ok) {
+                    const resultado = await response.json();
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Venda realizada com sucesso!
+                    
+📊 Detalhes da Venda:
+• Cliente ID: ${clienteId}
+• Fornecedor ID: ${fornecedorId}
+• Mercadoria: ${mercadoria}
+• Quantidade: ${quantidade}
+• Preço Unitário: R$ ${parseFloat(precoUnitario).toFixed(2)}
+• Valor Subtotal: R$ ${valorSubtotal.toFixed(2)}
+• ICMS (18%): R$ ${icms.toFixed(2)}
+• Valor Total com ICMS: R$ ${valorTotalComICMS.toFixed(2)}
+
+${JSON.stringify(resultado, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Erro ao realizar venda: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro: ${error.message}`;
+            }
+        }
+
+        async function testRelatorioFornecedor() {
+            const fornecedorId = document.getElementById('teste-fornecedor-relatorio').value;
+            const tipoRelatorio = document.getElementById('teste-tipo-relatorio').value;
+            const resultDiv = document.getElementById('relatorio-fornecedor-result');
+            
+            if (!fornecedorId || !tipoRelatorio) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Por favor, preencha todos os campos obrigatórios.';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/relatorios/fornecedor/${fornecedorId}/${tipoRelatorio}`);
+                if (response.ok) {
+                    const relatorio = await response.json();
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Relatório gerado com sucesso!\n${JSON.stringify(relatorio, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Erro ao gerar relatório: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro: ${error.message}`;
+            }
+        }
+
+        async function testRelatorioCliente() {
+            const clienteId = document.getElementById('teste-cliente-relatorio').value;
+            const fornecedorId = document.getElementById('teste-fornecedor-cliente-relatorio').value;
+            const resultDiv = document.getElementById('relatorio-cliente-result');
+            
+            if (!clienteId || !fornecedorId) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Por favor, preencha todos os campos obrigatórios.';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/relatorios/cliente/${clienteId}/${fornecedorId}`);
+                if (response.ok) {
+                    const relatorio = await response.json();
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Relatório gerado com sucesso!\n${JSON.stringify(relatorio, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Erro ao gerar relatório: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 

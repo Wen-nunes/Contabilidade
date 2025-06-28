@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Relatório de Vendas</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; background-color: #f5f5f5; border-radius: 3px; }
+        .error { color: red; }
+        .success { color: green; }
+        button { padding: 10px 15px; margin: 5px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        input { padding: 5px; margin: 5px; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Teste Relatório de Vendas</h1>
+    
+    <div class="test-section">
+        <h3>1. Listar Todas as Vendas</h3>
+        <button onclick="listarTodasVendas()">Listar Todas as Vendas</button>
+        <div id="todasVendas" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. Testar Vendas por Fornecedor</h3>
+        <input type="number" id="fornecedorId" placeholder="ID do Fornecedor" value="1">
+        <button onclick="testarVendasPorFornecedor()">Buscar Vendas por Fornecedor</button>
+        <div id="vendasPorFornecedor" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. Testar Relatório de Vendas</h3>
+        <input type="number" id="fornecedorIdRelatorio" placeholder="ID do Fornecedor" value="1">
+        <select id="periodoRelatorio">
+            <option value="todos">Todos</option>
+            <option value="hoje">Hoje</option>
+            <option value="semana">Última Semana</option>
+            <option value="mes">Último Mês</option>
+        </select>
+        <button onclick="testarRelatorioVendas()">Gerar Relatório de Vendas</button>
+        <div id="relatorioVendas" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>4. Criar Venda de Teste</h3>
+        <input type="number" id="fornecedorIdVenda" placeholder="ID do Fornecedor" value="1">
+        <input type="text" id="nomeMercadoria" placeholder="Nome da Mercadoria" value="Produto Teste">
+        <input type="number" id="quantidade" placeholder="Quantidade" value="2">
+        <input type="number" id="precoUnitario" placeholder="Preço Unitário" value="50.00" step="0.01">
+        <select id="formaPagamento">
+            <option value="debito">À Vista</option>
+            <option value="credito">A Prazo</option>
+        </select>
+        <input type="number" id="numeroParcelas" placeholder="Número de Parcelas" value="3" style="display:none;">
+        <button onclick="criarVendaTeste()">Criar Venda</button>
+        <div id="resultadoVenda" class="result"></div>
+    </div>
+
+    <script>
+        // Mostrar/ocultar campo de parcelas
+        document.getElementById('formaPagamento').addEventListener('change', function() {
+            const parcelasField = document.getElementById('numeroParcelas');
+            if (this.value === 'credito') {
+                parcelasField.style.display = 'inline';
+            } else {
+                parcelasField.style.display = 'none';
+            }
+        });
+
+        function listarTodasVendas() {
+            fetch('/vendas')
+                .then(response => response.json())
+                .then(vendas => {
+                    console.log('Todas as vendas:', vendas);
+                    let html = `<h4>Total de Vendas: ${vendas.length}</h4>`;
+                    
+                    if (vendas.length > 0) {
+                        html += '<table><thead><tr><th>ID</th><th>Mercadoria</th><th>Valor</th><th>ICMS</th><th>Fornecedor</th><th>Data</th><th>Pagamento</th></tr></thead><tbody>';
+                        vendas.forEach(venda => {
+                            html += `<tr>
+                                <td>${venda.id}</td>
+                                <td>${venda.nomeMercadoria}</td>
+                                <td>R$ ${venda.valor_total.toFixed(2)}</td>
+                                <td>R$ ${venda.icms.toFixed(2)}</td>
+                                <td>${venda.fornecedor ? venda.fornecedor.id : 'N/A'}</td>
+                                <td>${new Date(venda.dataVenda).toLocaleString()}</td>
+                                <td>${venda.debito ? 'À Vista' : 'A Prazo'}</td>
+                            </tr>`;
+                        });
+                        html += '</tbody></table>';
+                    } else {
+                        html += '<p>Nenhuma venda encontrada</p>';
+                    }
+                    
+                    document.getElementById('todasVendas').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    document.getElementById('todasVendas').innerHTML = `<p class="error">Erro: ${error.message}</p>`;
+                });
+        }
+
+        function testarVendasPorFornecedor() {
+            const fornecedorId = document.getElementById('fornecedorId').value;
+            if (!fornecedorId) {
+                alert('Por favor, informe o ID do fornecedor');
+                return;
+            }
+            
+            fetch(`/vendas/fornecedor/${fornecedorId}`)
+                .then(response => response.json())
+                .then(vendas => {
+                    console.log('Vendas por fornecedor:', vendas);
+                    let html = `<h4>Vendas para Fornecedor ${fornecedorId}: ${vendas.length}</h4>`;
+                    
+                    if (vendas.length > 0) {
+                        html += '<table><thead><tr><th>ID</th><th>Mercadoria</th><th>Valor</th><th>ICMS</th><th>Data</th><th>Pagamento</th></tr></thead><tbody>';
+                        vendas.forEach(venda => {
+                            html += `<tr>
+                                <td>${venda.id}</td>
+                                <td>${venda.nomeMercadoria}</td>
+                                <td>R$ ${venda.valor_total.toFixed(2)}</td>
+                                <td>R$ ${venda.icms.toFixed(2)}</td>
+                                <td>${new Date(venda.dataVenda).toLocaleString()}</td>
+                                <td>${venda.debito ? 'À Vista' : 'A Prazo'}</td>
+                            </tr>`;
+                        });
+                        html += '</tbody></table>';
+                    } else {
+                        html += '<p>Nenhuma venda encontrada para este fornecedor</p>';
+                    }
+                    
+                    document.getElementById('vendasPorFornecedor').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    document.getElementById('vendasPorFornecedor').innerHTML = `<p class="error">Erro: ${error.message}</p>`;
+                });
+        }
+
+        function testarRelatorioVendas() {
+            const fornecedorId = document.getElementById('fornecedorIdRelatorio').value;
+            const periodo = document.getElementById('periodoRelatorio').value;
+            
+            if (!fornecedorId) {
+                alert('Por favor, informe o ID do fornecedor');
+                return;
+            }
+            
+            console.log('Gerando relatório de vendas para fornecedor:', fornecedorId, 'período:', periodo);
+            
+            fetch(`/vendas/fornecedor/${fornecedorId}`)
+                .then(response => response.json())
+                .then(vendas => {
+                    console.log('Vendas recebidas:', vendas);
+                    console.log('Total de vendas:', vendas.length);
+                    
+                    // Filtrar por período se necessário
+                    let vendasFiltradas = vendas;
+                    if (periodo !== 'todos') {
+                        const hoje = new Date();
+                        const filtroData = new Date();
+                        
+                        switch(periodo) {
+                            case 'mes':
+                                filtroData.setMonth(filtroData.getMonth() - 1);
+                                break;
+                            case 'semana':
+                                filtroData.setDate(filtroData.getDate() - 7);
+                                break;
+                            case 'hoje':
+                                filtroData.setHours(0, 0, 0, 0);
+                                break;
+                        }
+                        
+                        vendasFiltradas = vendas.filter(venda => 
+                            new Date(venda.dataVenda) >= filtroData
+                        );
+                        console.log('Vendas filtradas por período:', vendasFiltradas.length);
+                    }
+                    
+                    // Calcular estatísticas
+                    const totalVendas = vendasFiltradas.length;
+                    const totalValor = vendasFiltradas.reduce((sum, venda) => sum + venda.valor_total + venda.icms, 0);
+                    const vendasAVista = vendasFiltradas.filter(v => v.debito).length;
+                    const vendasAPrazo = vendasFiltradas.filter(v => v.credito).length;
+                    const valorAVista = vendasFiltradas.filter(v => v.debito)
+                        .reduce((sum, venda) => sum + venda.valor_total + venda.icms, 0);
+                    const valorAPrazo = vendasFiltradas.filter(v => v.credito)
+                        .reduce((sum, venda) => sum + venda.valor_total + venda.icms, 0);
+                    const totalICMS = vendasFiltradas.reduce((sum, venda) => sum + venda.icms, 0);
+                    
+                    console.log('Estatísticas calculadas:', {
+                        totalVendas,
+                        totalValor,
+                        vendasAVista,
+                        vendasAPrazo,
+                        valorAVista,
+                        valorAPrazo,
+                        totalICMS
+                    });
+                    
+                    let html = `
+                        <h4>Relatório de Vendas - Fornecedor ${fornecedorId}</h4>
+                        <h5>Resumo</h5>
+                        <p><strong>Total de Vendas:</strong> ${totalVendas}</p>
+                        <p><strong>Valor Total:</strong> R$ ${totalValor.toFixed(2)}</p>
+                        <p><strong>ICMS Total:</strong> R$ ${totalICMS.toFixed(2)}</p>
+                        <p><strong>Vendas à Vista:</strong> ${vendasAVista} (R$ ${valorAVista.toFixed(2)})</p>
+                        <p><strong>Vendas a Prazo:</strong> ${vendasAPrazo} (R$ ${valorAPrazo.toFixed(2)})</p>
+                        
+                        <h5>Estatísticas</h5>
+                        <p><strong>Valor Médio por Venda:</strong> R$ ${totalVendas > 0 ? (totalValor / totalVendas).toFixed(2) : '0,00'}</p>
+                        <p><strong>% à Vista:</strong> ${totalVendas > 0 ? ((vendasAVista / totalVendas) * 100).toFixed(1) : '0'}%</p>
+                        <p><strong>% a Prazo:</strong> ${totalVendas > 0 ? ((vendasAPrazo / totalVendas) * 100).toFixed(1) : '0'}%</p>
+                        <p><strong>ICMS Médio:</strong> R$ ${totalVendas > 0 ? (totalICMS / totalVendas).toFixed(2) : '0,00'}</p>
+                    `;
+                    
+                    if (vendasFiltradas.length > 0) {
+                        html += '<h5>Detalhes</h5><table><thead><tr><th>Data</th><th>Mercadoria</th><th>Valor</th><th>ICMS</th><th>Pagamento</th><th>Parcelas</th></tr></thead><tbody>';
+                        
+                        console.log('Gerando detalhes para', vendasFiltradas.length, 'vendas');
+                        vendasFiltradas.forEach((venda, index) => {
+                            console.log(`Venda ${index + 1}:`, venda);
+                            const data = new Date(venda.dataVenda).toLocaleDateString();
+                            const pagamento = venda.debito ? 'À Vista' : 'A Prazo';
+                            const parcelas = venda.credito ? `${venda.numero_parcelas}x` : '-';
+                            
+                            html += `<tr>
+                                <td>${data}</td>
+                                <td>${venda.nomeMercadoria}</td>
+                                <td>R$ ${venda.valor_total.toFixed(2)}</td>
+                                <td>R$ ${venda.icms.toFixed(2)}</td>
+                                <td>${pagamento}</td>
+                                <td>${parcelas}</td>
+                            </tr>`;
+                        });
+                        
+                        html += '</tbody></table>';
+                    } else {
+                        html += '<p>Nenhuma venda encontrada para o período selecionado</p>';
+                    }
+                    
+                    document.getElementById('relatorioVendas').innerHTML = html;
+                    console.log('Relatório de vendas gerado com sucesso');
+                })
+                .catch(error => {
+                    console.error('Erro ao gerar relatório de vendas:', error);
+                    document.getElementById('relatorioVendas').innerHTML = `<p class="error">Erro: ${error.message}</p>`;
+                });
+        }
+
+        function criarVendaTeste() {
+            const fornecedorId = document.getElementById('fornecedorIdVenda').value;
+            const nomeMercadoria = document.getElementById('nomeMercadoria').value;
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const precoUnitario = parseFloat(document.getElementById('precoUnitario').value);
+            const formaPagamento = document.getElementById('formaPagamento').value;
+            const numeroParcelas = parseInt(document.getElementById('numeroParcelas').value) || 0;
+            
+            if (!fornecedorId || !nomeMercadoria || !quantidade || !precoUnitario) {
+                alert('Por favor, preencha todos os campos obrigatórios');
+                return;
+            }
+            
+            const venda = {
+                nomeMercadoria: nomeMercadoria,
+                quantidade: quantidade,
+                precoUnitario: precoUnitario,
+                debito: formaPagamento === 'debito',
+                credito: formaPagamento === 'credito',
+                numero_parcelas: formaPagamento === 'credito' ? numeroParcelas : 0,
+                fornecedor: { id: parseInt(fornecedorId) },
+                cliente: { id: 1 } // Cliente padrão
+            };
+            
+            console.log('Criando venda:', venda);
+            
+            fetch('/vendas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(venda)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Erro ao criar venda');
+                }
+            })
+            .then(vendaCriada => {
+                console.log('Venda criada:', vendaCriada);
+                document.getElementById('resultadoVenda').innerHTML = `
+                    <p class="success">Venda criada com sucesso!</p>
+                    <p><strong>ID:</strong> ${vendaCriada.id}</p>
+                    <p><strong>Mercadoria:</strong> ${vendaCriada.nomeMercadoria}</p>
+                    <p><strong>Valor Total:</strong> R$ ${vendaCriada.valor_total.toFixed(2)}</p>
+                    <p><strong>ICMS:</strong> R$ ${vendaCriada.icms.toFixed(2)}</p>
+                    <p><strong>Pagamento:</strong> ${vendaCriada.debito ? 'À Vista' : 'A Prazo'}</p>
+                `;
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                document.getElementById('resultadoVenda').innerHTML = `<p class="error">Erro: ${error.message}</p>`;
+            });
+        }
+    </script>
+</body>
+</html> 

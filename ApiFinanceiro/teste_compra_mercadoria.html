@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Compra de Mercadoria</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin: 10px 0; }
+        label { display: inline-block; width: 150px; }
+        input, select { padding: 5px; margin: 5px; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        .result { margin: 10px 0; padding: 10px; background-color: #f5f5f5; border-radius: 3px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Teste Compra de Mercadoria</h1>
+    
+    <div class="form-group">
+        <label>Fornecedor ID:</label>
+        <input type="number" id="fornecedorId" value="1">
+    </div>
+    
+    <div class="form-group">
+        <label>Nome da Mercadoria:</label>
+        <input type="text" id="nomeMercadoria" value="Produto Teste">
+    </div>
+    
+    <div class="form-group">
+        <label>Descrição:</label>
+        <input type="text" id="descricao" value="Descrição do produto teste">
+    </div>
+    
+    <div class="form-group">
+        <label>Preço de Compra:</label>
+        <input type="number" id="precoCompra" value="50.00" step="0.01">
+    </div>
+    
+    <div class="form-group">
+        <label>Preço de Venda:</label>
+        <input type="number" id="precoVenda" value="75.00" step="0.01">
+    </div>
+    
+    <div class="form-group">
+        <label>Quantidade:</label>
+        <input type="number" id="quantidade" value="10">
+    </div>
+    
+    <div class="form-group">
+        <label>Forma de Pagamento:</label>
+        <select id="formaPagamento">
+            <option value="vista">À Vista</option>
+            <option value="prazo">A Prazo</option>
+        </select>
+    </div>
+    
+    <div class="form-group" id="parcelasContainer" style="display: none;">
+        <label>Número de Parcelas:</label>
+        <input type="number" id="numeroParcelas" value="3" min="1" max="12">
+    </div>
+    
+    <button onclick="criarCompra()">Criar Compra</button>
+    
+    <div id="resultado" class="result"></div>
+    
+    <script>
+        // Mostrar/esconder campo de parcelas
+        document.getElementById('formaPagamento').addEventListener('change', function() {
+            document.getElementById('parcelasContainer').style.display = 
+                this.value === 'prazo' ? 'block' : 'none';
+        });
+        
+        function criarCompra() {
+            const fornecedorId = parseInt(document.getElementById('fornecedorId').value);
+            const nomeMercadoria = document.getElementById('nomeMercadoria').value;
+            const descricao = document.getElementById('descricao').value;
+            const precoCompra = parseFloat(document.getElementById('precoCompra').value);
+            const precoVenda = parseFloat(document.getElementById('precoVenda').value);
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const formaPagamento = document.getElementById('formaPagamento').value;
+            const numeroParcelas = parseInt(document.getElementById('numeroParcelas').value) || 0;
+            
+            if (!fornecedorId || !nomeMercadoria || !descricao || !precoCompra || !precoVenda || !quantidade) {
+                alert('Por favor, preencha todos os campos obrigatórios');
+                return;
+            }
+            
+            const compra = {
+                fornecedorId: fornecedorId,
+                nomeMercadoria: nomeMercadoria,
+                descricao: descricao,
+                precoCompra: precoCompra,
+                precoVenda: precoVenda,
+                quantidade: quantidade,
+                pagamentoVista: formaPagamento === 'vista',
+                pagamentoPrazo: formaPagamento === 'prazo',
+                numeroParcelas: formaPagamento === 'prazo' ? numeroParcelas : 0
+            };
+            
+            console.log('Enviando compra:', compra);
+            
+            fetch('/compras', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(compra)
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Compra criada:', data);
+                document.getElementById('resultado').innerHTML = `
+                    <p class="success">Compra criada com sucesso!</p>
+                    <p><strong>ID:</strong> ${data.id}</p>
+                    <p><strong>Mercadoria:</strong> ${data.nomeMercadoria}</p>
+                    <p><strong>Quantidade:</strong> ${data.quantidade}</p>
+                    <p><strong>Valor Total:</strong> R$ ${data.valorTotal.toFixed(2)}</p>
+                    <p><strong>Fornecedor:</strong> ${data.fornecedor ? data.fornecedor.nome : 'N/A'}</p>
+                    <p><strong>Pagamento:</strong> ${data.pagamentoVista ? 'À Vista' : 'A Prazo'}</p>
+                `;
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                document.getElementById('resultado').innerHTML = `
+                    <p class="error">Erro ao criar compra: ${error.message}</p>
+                `;
+            });
+        }
+    </script>
+</body>
+</html> 

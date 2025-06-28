@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área do Fornecedor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .nav-tabs {
+            margin-bottom: 20px;
+        }
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .table-container {
+            margin-top: 20px;
+        }
+        .back-button {
+            margin-bottom: 20px;
+        }
+        .total-lucro {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .balanco-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .balanco-title {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        .balanco-value {
+            font-size: 1.1em;
+            color: #212529;
+        }
+        .bem-item {
+            background-color: #e9ecef;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .bem-nome {
+            font-weight: bold;
+            color: #495057;
+        }
+        .bem-valor {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .bem-data {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="btn btn-secondary back-button">Voltar</a>
+        <h1 class="text-center mb-4">Área do Fornecedor</h1>
+        
+        <ul class="nav nav-tabs" id="fornecedorTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="cadastro-tab" data-bs-toggle="tab" data-bs-target="#cadastro" type="button" role="tab">Cadastro</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="compras-tab" data-bs-toggle="tab" data-bs-target="#compras" type="button" role="tab">Compras</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="bens-tab" data-bs-toggle="tab" data-bs-target="#bens" type="button" role="tab">Bens</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="balanco-tab" data-bs-toggle="tab" data-bs-target="#balanco" type="button" role="tab">Balanço</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="relatorios-tab" data-bs-toggle="tab" data-bs-target="#relatorios" type="button" role="tab">Relatórios</button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- Aba de Cadastro de Fornecedor -->
+            <div class="tab-pane fade show active form-container" id="cadastro" role="tabpanel">
+                <h2>Cadastro de Fornecedor</h2>
+                <form id="fornecedorForm">
+                    <div class="mb-3">
+                        <label for="nomeFornecedor" class="form-label">Nome da Empresa</label>
+                        <input type="text" class="form-control" id="nomeFornecedor" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="enderecoFornecedor" class="form-label">Endereço</label>
+                        <input type="text" class="form-control" id="enderecoFornecedor" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="capitalSocial" class="form-label">Capital Social (R$)</label>
+                        <input type="number" step="0.01" class="form-control" id="capitalSocial" min="0" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cadastrar Fornecedor</button>
+                </form>
+
+                <div class="table-container">
+                    <h3>Fornecedores Cadastrados</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Capital Social</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fornecedoresTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Aba de Compras de Mercadorias -->
+            <div class="tab-pane fade form-container" id="compras" role="tabpanel">
+                <h2>Compras de Mercadorias</h2>
+                <form id="compraForm">
+                    <div class="mb-3">
+                        <label for="fornecedorId" class="form-label">Seu ID de Fornecedor</label>
+                        <input type="number" class="form-control" id="fornecedorId" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nomeMercadoria" class="form-label">Nome da Mercadoria</label>
+                        <input type="text" class="form-control" id="nomeMercadoria" list="mercadoriasList" required>
+                        <datalist id="mercadoriasList">
+                        </datalist>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descricaoMercadoria" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="descricaoMercadoria" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="precoCompra" class="form-label">Preço de Compra (R$)</label>
+                        <input type="number" step="0.01" class="form-control" id="precoCompra" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="precoVenda" class="form-label">Preço de Venda (R$)</label>
+                        <input type="number" step="0.01" class="form-control" id="precoVenda" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantidadeCompra" class="form-label">Quantidade</label>
+                        <input type="number" class="form-control" id="quantidadeCompra" min="1" required>
+                    </div>
+                    
+                    <!-- Campo para mostrar valor total com ICMS -->
+                    <div class="mb-3">
+                        <label for="valorTotalComICMS" class="form-label">Valor Total com ICMS (R$)</label>
+                        <input type="number" step="0.01" class="form-control" id="valorTotalComICMS" readonly>
+                        <div class="form-text">Valor calculado automaticamente: (Preço × Quantidade) + ICMS (18%)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Forma de Pagamento</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="pagamentoCompra" id="vista" value="vista" checked>
+                            <label class="form-check-label" for="vista">À Vista</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="pagamentoCompra" id="prazo" value="prazo">
+                            <label class="form-check-label" for="prazo">A Prazo</label>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="parcelasCompraContainer" style="display: none;">
+                        <label for="parcelasCompra" class="form-label">Número de Parcelas (máx. 12)</label>
+                        <input type="number" class="form-control" id="parcelasCompra" min="1" max="12">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Realizar Compra</button>
+                </form>
+
+                <div class="table-container">
+                    <h3>Compras Realizadas</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Mercadoria</th>
+                                <th>Preço Compra</th>
+                                <th>Preço Venda</th>
+                                <th>Quantidade</th>
+                                <th>Total com ICMS</th>
+                                <th>Pagamento</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comprasTableBody">
+                            <tr th:each="produto : ${produtos}">
+                                <td th:text="${produto.id}"></td>
+                                <td th:text="${produto.nomeMercadoria}"></td>
+                                <td th:text="${#numbers.formatDecimal(produto.precoCompra, 0, 'POINT', 2, 'COMMA')}"></td>
+                                <td th:text="${#numbers.formatDecimal(produto.precoVenda, 0, 'POINT', 2, 'COMMA')}"></td>
+                                <td th:text="${produto.quantidade}"></td>
+                                <td th:text="${#numbers.formatDecimal(produto.valorTotal, 0, 'POINT', 2, 'COMMA')}"></td>
+                                <td th:text="${produto.pagamentoVista ? 'À Vista' : 'A Prazo'}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Aba de Cadastro de Bens -->
+            <div class="tab-pane fade form-container" id="bens" role="tabpanel">
+                <h2>Cadastro de Bens</h2>
+                <form id="bensForm">
+                    <div class="mb-3">
+                        <label for="fornecedorIdBens" class="form-label">Seu ID de Fornecedor</label>
+                        <input type="number" class="form-control" id="fornecedorIdBens" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nomeBem" class="form-label">Nome do Bem</label>
+                        <input type="text" class="form-control" id="nomeBem" placeholder="Ex: Carro da empresa, Computador, Mesa..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descricaoBem" class="form-label">Descrição do Bem</label>
+                        <textarea class="form-control" id="descricaoBem" rows="3" placeholder="Descreva detalhes do bem..." required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="valorBem" class="form-label">Valor do Bem (R$)</label>
+                        <input type="number" step="0.01" class="form-control" id="valorBem" min="0" required>
+                    </div>
+                    
+                    <!-- Opções de Pagamento -->
+                    <div class="mb-3">
+                        <label class="form-label">Forma de Pagamento</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="pagamentoBem" id="pagamentoVistaBem" value="vista" checked>
+                            <label class="form-check-label" for="pagamentoVistaBem">
+                                Pagamento à Vista
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="pagamentoBem" id="pagamentoPrazoBem" value="prazo">
+                            <label class="form-check-label" for="pagamentoPrazoBem">
+                                Pagamento a Prazo
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Campo de Parcelas (inicialmente oculto) -->
+                    <div class="mb-3" id="parcelasBemContainer" style="display: none;">
+                        <label for="parcelasBem" class="form-label">Número de Parcelas</label>
+                        <input type="number" class="form-control" id="parcelasBem" min="1" max="60" value="12">
+                        <div class="form-text">O valor da parcela será calculado automaticamente</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Cadastrar Bem</button>
+                </form>
+
+                <div class="table-container">
+                    <h3>Bens Cadastrados</h3>
+                    <div id="bensList">
+                        <!-- Lista de bens será carregada dinamicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba de Balanço Patrimonial -->
+            <div class="tab-pane fade form-container" id="balanco" role="tabpanel">
+                <h2>Balanço Patrimonial</h2>
+                <div class="mb-3">
+                    <label for="fornecedorIdBalanco" class="form-label">ID do Fornecedor</label>
+                    <input type="number" class="form-control" id="fornecedorIdBalanco" required>
+                    <button class="btn btn-primary mt-2" onclick="gerarBalanco()">Gerar Balanço</button>
+                </div>
+                <div id="balancoResultado">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="balanco-card">
+                                <div class="balanco-title">Capital Social</div>
+                                <div class="balanco-value" id="capitalSocialBalanco">R$ 0,00</div>
+                            </div>
+                            <div class="balanco-card">
+                                <div class="balanco-title">Valores a Receber</div>
+                                <div class="balanco-value" id="valoresAReceber">R$ 0,00</div>
+                            </div>
+                            <div class="balanco-card">
+                                <div class="balanco-title">Vendas à Vista</div>
+                                <div class="balanco-value" id="vendasAVista">R$ 0,00</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="balanco-card">
+                                <div class="balanco-title">Valores a Pagar</div>
+                                <div class="balanco-value" id="valoresAPagar">R$ 0,00</div>
+                            </div>
+                            <div class="balanco-card">
+                                <div class="balanco-title">Compras à Vista</div>
+                                <div class="balanco-value" id="comprasAVista">R$ 0,00</div>
+                            </div>
+                            <div class="balanco-card">
+                                <div class="balanco-title">Patrimônio Líquido</div>
+                                <div class="balanco-value" id="patrimonioLiquido">R$ 0,00</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="balanco-card">
+                        <div class="balanco-title">Bens da Empresa</div>
+                        <div id="bensEmpresa">Nenhum bem cadastrado</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba de Relatórios -->
+            <div class="tab-pane fade form-container" id="relatorios" role="tabpanel">
+                <h2>Relatórios de Compras e Vendas</h2>
+                
+                <!-- Filtros -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <label for="fornecedorIdRelatorio" class="form-label">ID do Fornecedor</label>
+                        <input type="number" class="form-control" id="fornecedorIdRelatorio" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="tipoRelatorio" class="form-label">Tipo de Relatório</label>
+                        <select class="form-control" id="tipoRelatorio">
+                            <option value="compras">Relatório de Compras</option>
+                            <option value="vendas">Relatório de Vendas</option>
+                            <option value="bens">Relatório de Bens</option>
+                            <option value="geral">Relatório Geral</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="periodoRelatorio" class="form-label">Período</label>
+                        <select class="form-control" id="periodoRelatorio">
+                            <option value="todos">Todos</option>
+                            <option value="mes">Último Mês</option>
+                            <option value="semana">Última Semana</option>
+                            <option value="hoje">Hoje</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary d-block" onclick="gerarRelatorio()">Gerar Relatório</button>
+                    </div>
+                </div>
+
+                <!-- Resultados do Relatório -->
+                <div id="resultadoRelatorio">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Resumo</h5>
+                                </div>
+                                <div class="card-body" id="resumoRelatorio">
+                                    <p class="text-muted">Selecione os filtros e clique em "Gerar Relatório"</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Estatísticas</h5>
+                                </div>
+                                <div class="card-body" id="estatisticasRelatorio">
+                                    <p class="text-muted">Estatísticas aparecerão aqui</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5>Detalhes</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="detalhesRelatorio">
+                                <p class="text-muted">Detalhes do relatório aparecerão aqui</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mostrar/esconder campo de parcelas para compras
+        document.querySelectorAll('input[name="pagamentoCompra"]').forEach(input => {
+            input.addEventListener('change', function() {
+                document.getElementById('parcelasCompraContainer').style.display = 
+                    this.value === 'prazo' ? 'block' : 'none';
+            });
+        });
+
+        // Mostrar/esconder campo de parcelas para bens
+        document.querySelectorAll('input[name="pagamentoBem"]').forEach(input => {
+            input.addEventListener('change', function() {
+                document.getElementById('parcelasBemContainer').style.display = 
+                    this.value === 'prazo' ? 'block' : 'none';
+            });
+        });
+
+        // Formulário de fornecedor
+        document.getElementById('fornecedorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const fornecedor = {
+                nome: document.getElementById('nomeFornecedor').value,
+                endereco: document.getElementById('enderecoFornecedor').value,
+                capitalSocial: parseFloat(document.getElementById('capitalSocial').value)
+            };
+            
+            fetch('/fornecedores', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(fornecedor)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Fornecedor cadastrado com sucesso! ID: ' + data.id);
+                this.reset();
+                carregarFornecedores();
+            })
+            .catch(error => {
+                alert('Erro ao cadastrar fornecedor');
+                console.error(error);
+            });
+        });
+
+        // Formulário de compra
+        document.getElementById('compraForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formaPagamento = document.querySelector('input[name="pagamentoCompra"]:checked').value;
+            const valorTotalComICMS = parseFloat(document.getElementById('valorTotalComICMS').value) || 0;
+            
+            if (valorTotalComICMS <= 0) {
+                alert('Por favor, preencha o nome da mercadoria e quantidade para calcular o valor total.');
+                return;
+            }
+            
+            const compra = {
+                fornecedorId: parseInt(document.getElementById('fornecedorId').value),
+                nomeMercadoria: document.getElementById('nomeMercadoria').value,
+                descricao: document.getElementById('descricaoMercadoria').value,
+                precoCompra: parseFloat(document.getElementById('precoCompra').value),
+                precoVenda: parseFloat(document.getElementById('precoVenda').value),
+                quantidade: parseInt(document.getElementById('quantidadeCompra').value),
+                pagamentoVista: formaPagamento === 'vista',
+                pagamentoPrazo: formaPagamento === 'prazo',
+                numeroParcelas: formaPagamento === 'prazo' ? 
+                    parseInt(document.getElementById('parcelasCompra').value) : 0
+            };
+            
+            console.log('Enviando compra:', compra);
+            
+            fetch('/compras', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(compra)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro na resposta do servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert('Compra realizada com sucesso!');
+                this.reset();
+                document.getElementById('valorTotalComICMS').value = '';
+                location.reload();
+            })
+            .catch(error => {
+                alert('Erro ao realizar compra: ' + error.message);
+                console.error(error);
+            });
+        });
+
+        // Formulário de bens
+        document.getElementById('bensForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formaPagamento = document.querySelector('input[name="pagamentoBem"]:checked').value;
+            const bem = {
+                fornecedorId: parseInt(document.getElementById('fornecedorIdBens').value),
+                nome: document.getElementById('nomeBem').value,
+                descricao: document.getElementById('descricaoBem').value,
+                valor: parseFloat(document.getElementById('valorBem').value),
+                pagamentoVista: formaPagamento === 'vista',
+                pagamentoPrazo: formaPagamento === 'prazo',
+                numeroParcelas: formaPagamento === 'prazo' ? 
+                    parseInt(document.getElementById('parcelasBem').value) : 0
+            };
+            
+            console.log('Enviando bem:', bem);
+            
+            fetch('/bens', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(bem)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro na resposta do servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert('Bem cadastrado com sucesso!');
+                this.reset();
+                // Resetar os radio buttons para à vista
+                document.getElementById('pagamentoVistaBem').checked = true;
+                document.getElementById('parcelasBemContainer').style.display = 'none';
+                carregarBens(document.getElementById('fornecedorIdBens').value);
+            })
+            .catch(error => {
+                alert('Erro ao cadastrar bem: ' + error.message);
+                console.error(error);
+            });
+        });
+
+        function carregarFornecedores() {
+            fetch('/fornecedores')
+                .then(response => response.json())
+                .then(fornecedores => {
+                    const tbody = document.getElementById('fornecedoresTableBody');
+                    tbody.innerHTML = '';
+                    fornecedores.forEach(fornecedor => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${fornecedor.id}</td>
+                            <td>${fornecedor.nome}</td>
+                            <td>R$ ${fornecedor.capitalSocial.toFixed(2)}</td>
+                            <td>
+                                <button class="btn btn-sm btn-info" onclick="gerarBalanco(${fornecedor.id})">Ver Balanço</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(error => console.error(error));
+        }
+
+        function carregarBens(fornecedorId) {
+            if (!fornecedorId) return;
+            
+            fetch(`/bens/fornecedor/${fornecedorId}`)
+                .then(response => response.json())
+                .then(bens => {
+                    const bensList = document.getElementById('bensList');
+                    bensList.innerHTML = '';
+                    
+                    if (bens.length === 0) {
+                        bensList.innerHTML = '<p class="text-muted">Nenhum bem cadastrado</p>';
+                        return;
+                    }
+                    
+                    bens.forEach(bem => {
+                        const bemDiv = document.createElement('div');
+                        bemDiv.className = 'bem-item';
+                        
+                        let pagamentoInfo = '';
+                        if (bem.pagamentoVista) {
+                            pagamentoInfo = '<span class="badge bg-success">À Vista</span>';
+                        } else if (bem.pagamentoPrazo && bem.numeroParcelas > 0) {
+                            pagamentoInfo = `<span class="badge bg-warning">A Prazo (${bem.numeroParcelas}x de R$ ${bem.valorParcela ? bem.valorParcela.toFixed(2) : (bem.valor / bem.numeroParcelas).toFixed(2)})</span>`;
+                        }
+                        
+                        bemDiv.innerHTML = `
+                            <div class="bem-nome">${bem.nome}</div>
+                            <div class="bem-valor">R$ ${bem.valor.toFixed(2)}</div>
+                            <div class="bem-data">Comprado em: ${new Date(bem.dataCompra).toLocaleDateString()}</div>
+                            <div class="mt-2">${bem.descricao}</div>
+                            <div class="mt-2">${pagamentoInfo}</div>
+                        `;
+                        bensList.appendChild(bemDiv);
+                    });
+                })
+                .catch(error => console.error(error));
+        }
+
+        function carregarMercadorias(fornecedorId) {
+            if (!fornecedorId) return;
+            
+            fetch(`/compras/fornecedor/${fornecedorId}`)
+                .then(response => response.json())
+                .then(compras => {
+                    const datalist = document.getElementById('mercadoriasList');
+                    datalist.innerHTML = '';
+                    
+                    compras.forEach(compra => {
+                        const option = document.createElement('option');
+                        option.value = compra.nomeMercadoria;
+                        option.setAttribute('data-preco-compra', compra.precoCompra);
+                        option.setAttribute('data-preco-venda', compra.precoVenda);
+                        option.setAttribute('data-descricao', compra.descricao);
+                        datalist.appendChild(option);
+                    });
+                    
+                    // Também carregar a tabela de compras
+                    carregarCompras(fornecedorId);
+                })
+                .catch(error => console.error(error));
+        }
+
+        function carregarCompras(fornecedorId) {
+            if (!fornecedorId) return;
+            
+            fetch(`/compras/fornecedor/${fornecedorId}`)
+                .then(response => response.json())
+                .then(compras => {
+                    const tbody = document.getElementById('comprasTableBody');
+                    tbody.innerHTML = '';
+                    
+                    compras.forEach(compra => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${compra.id}</td>
+                            <td>${compra.nomeMercadoria}</td>
+                            <td>R$ ${compra.precoCompra.toFixed(2)}</td>
+                            <td>R$ ${compra.precoVenda.toFixed(2)}</td>
+                            <td>${compra.quantidade}</td>
+                            <td>R$ ${compra.valorTotal.toFixed(2)}</td>
+                            <td>${compra.pagamentoVista ? 'À Vista' : 'A Prazo'}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(error => console.error(error));
+        }
+
+        // Autocomplete para mercadorias
+        document.getElementById('nomeMercadoria').addEventListener('input', function() {
+            const fornecedorId = document.getElementById('fornecedorId').value;
+            if (fornecedorId) {
+                carregarMercadorias(fornecedorId);
+            }
+        });
+
+        // Carregar mercadorias e compras quando o ID do fornecedor for inserido
+        document.getElementById('fornecedorId').addEventListener('change', function() {
+            carregarMercadorias(this.value);
+        });
+
+        // Preencher automaticamente os campos ao selecionar uma mercadoria
+        document.getElementById('nomeMercadoria').addEventListener('change', function() {
+            const fornecedorId = document.getElementById('fornecedorId').value;
+            if (!fornecedorId) return;
+            
+            fetch(`/compras/fornecedor/${fornecedorId}`)
+                .then(response => response.json())
+                .then(compras => {
+                    const mercadoriaSelecionada = compras.find(c => c.nomeMercadoria === this.value);
+                    if (mercadoriaSelecionada) {
+                        document.getElementById('descricaoMercadoria').value = mercadoriaSelecionada.descricao;
+                        document.getElementById('precoCompra').value = mercadoriaSelecionada.precoCompra;
+                        document.getElementById('precoVenda').value = mercadoriaSelecionada.precoVenda;
+                        calcularValorTotalComICMS();
+                    }
+                })
+                .catch(error => console.error(error));
+        });
+
+        // Calcular valor total com ICMS quando preço ou quantidade mudar
+        document.getElementById('precoCompra').addEventListener('input', calcularValorTotalComICMS);
+        document.getElementById('quantidadeCompra').addEventListener('input', calcularValorTotalComICMS);
+
+        // Função para calcular valor total com ICMS
+        function calcularValorTotalComICMS() {
+            const precoCompra = parseFloat(document.getElementById('precoCompra').value) || 0;
+            const quantidade = parseInt(document.getElementById('quantidadeCompra').value) || 0;
+            
+            if (precoCompra > 0 && quantidade > 0) {
+                const valorSubtotal = precoCompra * quantidade;
+                const icms = valorSubtotal * 0.18; // 18% de ICMS
+                const valorTotalComICMS = valorSubtotal + icms;
+                
+                document.getElementById('valorTotalComICMS').value = valorTotalComICMS.toFixed(2);
+            } else {
+                document.getElementById('valorTotalComICMS').value = '';
+            }
+        }
+
+        // Carregar bens quando o ID do fornecedor for inserido
+        document.getElementById('fornecedorIdBens').addEventListener('change', function() {
+            carregarBens(this.value);
+        });
+
+        function gerarBalanco(fornecedorId = null) {
+            const id = fornecedorId || document.getElementById('fornecedorIdBalanco').value;
+            if (!id) {
+                alert('Por favor, informe o ID do fornecedor');
+                return;
+            }
+            
+            fetch(`/balanco/${id}`)
+                .then(response => response.json())
+                .then(balanco => {
+                    document.getElementById('capitalSocialBalanco').textContent = `R$ ${balanco.capitalSocial.toFixed(2)}`;
+                    document.getElementById('valoresAReceber').textContent = `R$ ${balanco.valoresAReceber.toFixed(2)}`;
+                    document.getElementById('valoresAPagar').textContent = `R$ ${balanco.valoresAPagar.toFixed(2)}`;
+                    document.getElementById('vendasAVista').textContent = `R$ ${balanco.vendasAVista.toFixed(2)}`;
+                    document.getElementById('comprasAVista').textContent = `R$ ${balanco.comprasAVista.toFixed(2)}`;
+                    document.getElementById('patrimonioLiquido').textContent = `R$ ${balanco.patrimonioLiquido.toFixed(2)}`;
+                    
+                    // Exibir bens com informações de parcelamento
+                    const bensEmpresa = document.getElementById('bensEmpresa');
+                    if (balanco.bens && balanco.bens.length > 0) {
+                        let bensHtml = '';
+                        balanco.bens.forEach(bem => {
+                            let pagamentoInfo = '';
+                            if (bem.pagamentoVista) {
+                                pagamentoInfo = '<span class="badge bg-success">À Vista</span>';
+                            } else if (bem.pagamentoPrazo && bem.numeroParcelas > 0) {
+                                const valorParcela = bem.valorParcela ? bem.valorParcela : (bem.valor / bem.numeroParcelas);
+                                pagamentoInfo = `<span class="badge bg-warning">A Prazo (${bem.numeroParcelas}x de R$ ${valorParcela.toFixed(2)})</span>`;
+                            }
+                            
+                            bensHtml += `
+                                <div class="bem-item">
+                                    <div class="bem-nome">${bem.nome}</div>
+                                    <div class="bem-valor">R$ ${bem.valor.toFixed(2)}</div>
+                                    <div class="bem-data">Comprado em: ${new Date(bem.dataCompra).toLocaleDateString()}</div>
+                                    <div class="mt-2">${pagamentoInfo}</div>
+                                </div>
+                            `;
+                        });
+                        bensEmpresa.innerHTML = bensHtml;
+                    } else {
+                        bensEmpresa.textContent = 'Nenhum bem cadastrado';
+                    }
+                })
+                .catch(error => {
+                    alert('Erro ao gerar balanço');
+                    console.error(error);
+                });
+        }
+
+        // Carregar fornecedores ao carregar a página
+        carregarFornecedores();
+
+        // Função para gerar relatórios
+        function gerarRelatorio() {
+            const fornecedorId = document.getElementById('fornecedorIdRelatorio').value;
+            const tipoRelatorio = document.getElementById('tipoRelatorio').value;
+            const periodo = document.getElementById('periodoRelatorio').value;
+            
+            if (!fornecedorId) {
+                alert('Por favor, informe o ID do fornecedor');
+                return;
+            }
+            
+            // Mostrar loading
+            document.getElementById('resumoRelatorio').innerHTML = '<p>Carregando...</p>';
+            document.getElementById('estatisticasRelatorio').innerHTML = '<p>Carregando...</p>';
+            document.getElementById('detalhesRelatorio').innerHTML = '<p>Carregando...</p>';
+            
+            // Gerar relatório baseado no tipo
+            switch(tipoRelatorio) {
+                case 'compras':
+                    gerarRelatorioCompras(fornecedorId, periodo);
+                    break;
+                case 'vendas':
+                    gerarRelatorioVendas(fornecedorId, periodo);
+                    break;
+                case 'bens':
+                    gerarRelatorioBens(fornecedorId, periodo);
+                    break;
+                case 'geral':
+                    gerarRelatorioGeral(fornecedorId, periodo);
+                    break;
+            }
+        }
+
+        function gerarRelatorioCompras(fornecedorId, periodo) {
+            fetch(`/compras/fornecedor/${fornecedorId}`)
+                .then(response => response.json())
+                .then(compras => {
+                    // Filtrar por período se necessário
+                    let comprasFiltradas = compras;
+                    if (periodo !== 'todos') {
+                        const hoje = new Date();
+                        const filtroData = new Date();
+                        
+                        switch(periodo) {
+                            case 'mes':
+                                filtroData.setMonth(filtroData.getMonth() - 1);
+                                break;
+                            case 'semana':
+                                filtroData.setDate(filtroData.getDate() - 7);
+                                break;
+                            case 'hoje':
+                                filtroData.setHours(0, 0, 0, 0);
+                                break;
+                        }
+                        
+                        comprasFiltradas = compras.filter(compra => 
+                            new Date(compra.dataCompra) >= filtroData
+                        );
+                    }
+                    
+                    // Calcular estatísticas
+                    const totalCompras = comprasFiltradas.length;
+                    const totalValor = comprasFiltradas.reduce((sum, compra) => sum + compra.valorTotal, 0);
+                    const comprasAVista = comprasFiltradas.filter(c => c.pagamentoVista).length;
+                    const comprasAPrazo = comprasFiltradas.filter(c => c.pagamentoPrazo).length;
+                    const valorAVista = comprasFiltradas.filter(c => c.pagamentoVista)
+                        .reduce((sum, compra) => sum + compra.valorTotal, 0);
+                    const valorAPrazo = comprasFiltradas.filter(c => c.pagamentoPrazo)
+                        .reduce((sum, compra) => sum + compra.valorTotal, 0);
+                    
+                    // Exibir resumo
+                    document.getElementById('resumoRelatorio').innerHTML = `
+                        <h6>Relatório de Compras</h6>
+                        <p><strong>Total de Compras:</strong> ${totalCompras}</p>
+                        <p><strong>Valor Total:</strong> R$ ${totalValor.toFixed(2)}</p>
+                        <p><strong>Compras à Vista:</strong> ${comprasAVista} (R$ ${valorAVista.toFixed(2)})</p>
+                        <p><strong>Compras a Prazo:</strong> ${comprasAPrazo} (R$ ${valorAPrazo.toFixed(2)})</p>
+                    `;
+                    
+                    // Exibir estatísticas
+                    document.getElementById('estatisticasRelatorio').innerHTML = `
+                        <h6>Estatísticas</h6>
+                        <p><strong>Valor Médio por Compra:</strong> R$ ${totalCompras > 0 ? (totalValor / totalCompras).toFixed(2) : '0,00'}</p>
+                        <p><strong>% à Vista:</strong> ${totalCompras > 0 ? ((comprasAVista / totalCompras) * 100).toFixed(1) : '0'}%</p>
+                        <p><strong>% a Prazo:</strong> ${totalCompras > 0 ? ((comprasAPrazo / totalCompras) * 100).toFixed(1) : '0'}%</p>
+                    `;
+                    
+                    // Exibir detalhes
+                    let detalhesHtml = '<table class="table table-striped"><thead><tr><th>Data</th><th>Mercadoria</th><th>Valor</th><th>Pagamento</th><th>Parcelas</th></tr></thead><tbody>';
+                    
+                    comprasFiltradas.forEach(compra => {
+                        const data = new Date(compra.dataCompra).toLocaleDateString();
+                        const pagamento = compra.pagamentoVista ? 'À Vista' : 'A Prazo';
+                        const parcelas = compra.pagamentoPrazo ? `${compra.numeroParcelas}x` : '-';
+                        
+                        detalhesHtml += `
+                            <tr>
+                                <td>${data}</td>
+                                <td>${compra.nomeMercadoria}</td>
+                                <td>R$ ${compra.valorTotal.toFixed(2)}</td>
+                                <td>${pagamento}</td>
+                                <td>${parcelas}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    detalhesHtml += '</tbody></table>';
+                    document.getElementById('detalhesRelatorio').innerHTML = detalhesHtml;
+                })
+                .catch(error => {
+                    console.error(error);
+                    document.getElementById('resumoRelatorio').innerHTML = '<p class="text-danger">Erro ao carregar relatório</p>';
+                });
+        }
+
+        function gerarRelatorioVendas(fornecedorId, periodo) {
+            console.log('=== DEBUG RELATÓRIO DE VENDAS ===');
+            console.log('Fornecedor ID:', fornecedorId);
+            console.log('Período:', periodo);
+            
+            // Limpar áreas de resultado
+            document.getElementById('resumoRelatorio').innerHTML = '<p>Carregando...</p>';
+            document.getElementById('estatisticasRelatorio').innerHTML = '<p>Carregando...</p>';
+            document.getElementById('detalhesRelatorio').innerHTML = '<p>Carregando...</p>';
+            
+            const url = `/vendas/fornecedor/${fornecedorId}/dto`;
+            console.log('URL da requisição:', url);
+            
+            fetch(url)
+                .then(response => {
+                    console.log('=== RESPONSE RECEBIDA ===');
+                    console.log('Status:', response.status);
+                    console.log('OK:', response.ok);
+                    console.log('Headers:', response.headers);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('=== DADOS RECEBIDOS ===');
+                    console.log('Dados brutos:', data);
+                    console.log('Tipo:', typeof data);
+                    console.log('É array?', Array.isArray(data));
+                    console.log('Length:', data ? data.length : 'null/undefined');
+                    
+                    if (!data) {
+                        throw new Error('Dados recebidos são null ou undefined');
+                    }
+                    
+                    if (!Array.isArray(data)) {
+                        console.error('Dados não são um array:', data);
+                        throw new Error('Dados recebidos não são um array válido');
+                    }
+                    
+                    console.log('=== ANÁLISE DO ARRAY ===');
+                    console.log('Número total de vendas:', data.length);
+                    
+                    // Log detalhado de cada venda
+                    data.forEach((venda, index) => {
+                        console.log(`=== VENDA ${index + 1} ===`);
+                        console.log('Venda completa:', venda);
+                        console.log('ID:', venda.id);
+                        console.log('Nome Mercadoria:', venda.nomeMercadoria);
+                        console.log('Quantidade:', venda.quantidade);
+                        console.log('Valor Total:', venda.valorTotal);
+                        console.log('ICMS:', venda.icms);
+                        console.log('Data Venda:', venda.dataVenda);
+                        console.log('Débito:', venda.debito);
+                        console.log('Crédito:', venda.credito);
+                        console.log('Fornecedor ID:', venda.fornecedorId);
+                        console.log('Fornecedor Nome:', venda.fornecedorNome);
+                        console.log('Cliente ID:', venda.clienteId);
+                        console.log('Cliente Nome:', venda.clienteNome);
+                    });
+                    
+                    // Filtrar por período se necessário
+                    let vendasFiltradas = data;
+                    if (periodo !== 'todos') {
+                        console.log('=== FILTRANDO POR PERÍODO ===');
+                        const hoje = new Date();
+                        const filtroData = new Date();
+                        
+                        switch(periodo) {
+                            case 'mes':
+                                filtroData.setMonth(filtroData.getMonth() - 1);
+                                break;
+                            case 'semana':
+                                filtroData.setDate(filtroData.getDate() - 7);
+                                break;
+                            case 'hoje':
+                                filtroData.setHours(0, 0, 0, 0);
+                                break;
+                        }
+                        
+                        console.log('Data de filtro:', filtroData);
+                        
+                        vendasFiltradas = data.filter(venda => {
+                            const dataVenda = new Date(venda.dataVenda);
+                            const passaFiltro = dataVenda >= filtroData;
+                            console.log(`Venda ${venda.id}: ${dataVenda} >= ${filtroData} = ${passaFiltro}`);
+                            return passaFiltro;
+                        });
+                        
+                        console.log('Vendas após filtro de período:', vendasFiltradas.length);
+                    }
+                    
+                    // Calcular estatísticas
+                    console.log('=== CALCULANDO ESTATÍSTICAS ===');
+                    const totalVendas = vendasFiltradas.length;
+                    console.log('Total de vendas:', totalVendas);
+                    
+                    const totalValor = vendasFiltradas.reduce((sum, venda) => {
+                        const valor = (venda.valorTotal || 0) + (venda.icms || 0);
+                        console.log(`Venda ${venda.id}: valorTotal=${venda.valorTotal}, icms=${venda.icms}, total=${valor}`);
+                        return sum + valor;
+                    }, 0);
+                    console.log('Total valor:', totalValor);
+                    
+                    const vendasAVista = vendasFiltradas.filter(v => v.debito).length;
+                    const vendasAPrazo = vendasFiltradas.filter(v => v.credito).length;
+                    console.log('Vendas à vista:', vendasAVista);
+                    console.log('Vendas a prazo:', vendasAPrazo);
+                    
+                    const valorAVista = vendasFiltradas.filter(v => v.debito)
+                        .reduce((sum, venda) => sum + (venda.valorTotal || 0) + (venda.icms || 0), 0);
+                    const valorAPrazo = vendasFiltradas.filter(v => v.credito)
+                        .reduce((sum, venda) => sum + (venda.valorTotal || 0) + (venda.icms || 0), 0);
+                    const totalICMS = vendasFiltradas.reduce((sum, venda) => sum + (venda.icms || 0), 0);
+                    
+                    console.log('=== ESTATÍSTICAS FINAIS ===');
+                    console.log({
+                        totalVendas,
+                        totalValor,
+                        vendasAVista,
+                        vendasAPrazo,
+                        valorAVista,
+                        valorAPrazo,
+                        totalICMS
+                    });
+                    
+                    // Exibir resumo
+                    const resumoHtml = `
+                        <h6>Relatório de Vendas - Fornecedor ${fornecedorId}</h6>
+                        <p><strong>Total de Vendas:</strong> ${totalVendas}</p>
+                        <p><strong>Valor Total:</strong> R$ ${totalValor.toFixed(2)}</p>
+                        <p><strong>ICMS Total:</strong> R$ ${totalICMS.toFixed(2)}</p>
+                        <p><strong>Vendas à Vista:</strong> ${vendasAVista} (R$ ${valorAVista.toFixed(2)})</p>
+                        <p><strong>Vendas a Prazo:</strong> ${vendasAPrazo} (R$ ${valorAPrazo.toFixed(2)})</p>
+                    `;
+                    document.getElementById('resumoRelatorio').innerHTML = resumoHtml;
+                    
+                    // Exibir estatísticas
+                    const estatisticasHtml = `
+                        <h6>Estatísticas</h6>
+                        <p><strong>Valor Médio por Venda:</strong> R$ ${totalVendas > 0 ? (totalValor / totalVendas).toFixed(2) : '0,00'}</p>
+                        <p><strong>% à Vista:</strong> ${totalVendas > 0 ? ((vendasAVista / totalVendas) * 100).toFixed(1) : '0'}%</p>
+                        <p><strong>% a Prazo:</strong> ${totalVendas > 0 ? ((vendasAPrazo / totalVendas) * 100).toFixed(1) : '0'}%</p>
+                        <p><strong>ICMS Médio:</strong> R$ ${totalVendas > 0 ? (totalICMS / totalVendas).toFixed(2) : '0,00'}</p>
+                    `;
+                    document.getElementById('estatisticasRelatorio').innerHTML = estatisticasHtml;
+                    
+                    // Exibir detalhes
+                    console.log('=== GERANDO DETALHES ===');
+                    if (vendasFiltradas.length > 0) {
+                        let detalhesHtml = `
+                            <h6>Detalhes das Vendas (${vendasFiltradas.length} vendas)</h6>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Data</th>
+                                        <th>Mercadoria</th>
+                                        <th>Qtd</th>
+                                        <th>Valor</th>
+                                        <th>ICMS</th>
+                                        <th>Pagamento</th>
+                                        <th>Parcelas</th>
+                                        <th>Cliente</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        
+                        console.log('Processando', vendasFiltradas.length, 'vendas para detalhes');
+                        vendasFiltradas.forEach((venda, index) => {
+                            console.log(`Processando venda ${index + 1} para detalhes:`, venda);
+                            const data = new Date(venda.dataVenda).toLocaleDateString();
+                            const pagamento = venda.debito ? 'À Vista' : 'A Prazo';
+                            const parcelas = venda.credito ? `${venda.numeroParcelas}x` : '-';
+                            const cliente = venda.clienteNome || 'N/A';
+                            
+                            const rowHtml = `
+                                <tr>
+                                    <td>${venda.id}</td>
+                                    <td>${data}</td>
+                                    <td>${venda.nomeMercadoria || 'N/A'}</td>
+                                    <td>${venda.quantidade || 0}</td>
+                                    <td>R$ ${(venda.valorTotal || 0).toFixed(2)}</td>
+                                    <td>R$ ${(venda.icms || 0).toFixed(2)}</td>
+                                    <td>${pagamento}</td>
+                                    <td>${parcelas}</td>
+                                    <td>${cliente}</td>
+                                </tr>
+                            `;
+                            
+                            console.log(`Row HTML para venda ${index + 1}:`, rowHtml);
+                            detalhesHtml += rowHtml;
+                        });
+                        
+                        detalhesHtml += '</tbody></table>';
+                        console.log('HTML final dos detalhes:', detalhesHtml);
+                        document.getElementById('detalhesRelatorio').innerHTML = detalhesHtml;
+                    } else {
+                        document.getElementById('detalhesRelatorio').innerHTML = '<p>Nenhuma venda encontrada para o período selecionado</p>';
+                    }
+                    
+                    console.log('=== RELATÓRIO GERADO COM SUCESSO ===');
+                })
+                .catch(error => {
+                    console.error('=== ERRO NO RELATÓRIO ===');
+                    console.error('Erro:', error);
+                    console.error('Mensagem:', error.message);
+                    console.error('Stack:', error.stack);
+                    
+                    document.getElementById('resumoRelatorio').innerHTML = `
+                        <p class="text-danger">Erro ao carregar relatório: ${error.message}</p>
+                    `;
+                    document.getElementById('estatisticasRelatorio').innerHTML = '';
+                    document.getElementById('detalhesRelatorio').innerHTML = '';
+                });
+        }
+
+        function gerarRelatorioBens(fornecedorId, periodo) {
+            fetch(`/bens/fornecedor/${fornecedorId}`)
+                .then(response => response.json())
+                .then(bens => {
+                    // Filtrar por período se necessário
+                    let bensFiltrados = bens;
+                    if (periodo !== 'todos') {
+                        const hoje = new Date();
+                        const filtroData = new Date();
+                        
+                        switch(periodo) {
+                            case 'mes':
+                                filtroData.setMonth(filtroData.getMonth() - 1);
+                                break;
+                            case 'semana':
+                                filtroData.setDate(filtroData.getDate() - 7);
+                                break;
+                            case 'hoje':
+                                filtroData.setHours(0, 0, 0, 0);
+                                break;
+                        }
+                        
+                        bensFiltrados = bens.filter(bem => 
+                            new Date(bem.dataCompra) >= filtroData
+                        );
+                    }
+                    
+                    // Calcular estatísticas
+                    const totalBens = bensFiltrados.length;
+                    const totalValor = bensFiltrados.reduce((sum, bem) => sum + bem.valor, 0);
+                    const bensAVista = bensFiltrados.filter(b => b.pagamentoVista).length;
+                    const bensAPrazo = bensFiltrados.filter(b => b.pagamentoPrazo).length;
+                    const valorAVista = bensFiltrados.filter(b => b.pagamentoVista)
+                        .reduce((sum, bem) => sum + bem.valor, 0);
+                    const valorAPrazo = bensFiltrados.filter(b => b.pagamentoPrazo)
+                        .reduce((sum, bem) => sum + bem.valor, 0);
+                    
+                    // Exibir resumo
+                    document.getElementById('resumoRelatorio').innerHTML = `
+                        <h6>Relatório de Bens</h6>
+                        <p><strong>Total de Bens:</strong> ${totalBens}</p>
+                        <p><strong>Valor Total:</strong> R$ ${totalValor.toFixed(2)}</p>
+                        <p><strong>Bens à Vista:</strong> ${bensAVista} (R$ ${valorAVista.toFixed(2)})</p>
+                        <p><strong>Bens a Prazo:</strong> ${bensAPrazo} (R$ ${valorAPrazo.toFixed(2)})</p>
+                    `;
+                    
+                    // Exibir estatísticas
+                    document.getElementById('estatisticasRelatorio').innerHTML = `
+                        <h6>Estatísticas</h6>
+                        <p><strong>Valor Médio por Bem:</strong> R$ ${totalBens > 0 ? (totalValor / totalBens).toFixed(2) : '0,00'}</p>
+                        <p><strong>% à Vista:</strong> ${totalBens > 0 ? ((bensAVista / totalBens) * 100).toFixed(1) : '0'}%</p>
+                        <p><strong>% a Prazo:</strong> ${totalBens > 0 ? ((bensAPrazo / totalBens) * 100).toFixed(1) : '0'}%</p>
+                    `;
+                    
+                    // Exibir detalhes
+                    let detalhesHtml = '<table class="table table-striped"><thead><tr><th>Data</th><th>Bem</th><th>Valor</th><th>Pagamento</th><th>Parcelas</th></tr></thead><tbody>';
+                    
+                    bensFiltrados.forEach(bem => {
+                        const data = new Date(bem.dataCompra).toLocaleDateString();
+                        const pagamento = bem.pagamentoVista ? 'À Vista' : 'A Prazo';
+                        const parcelas = bem.pagamentoPrazo ? `${bem.numeroParcelas}x` : '-';
+                        
+                        detalhesHtml += `
+                            <tr>
+                                <td>${data}</td>
+                                <td>${bem.nome}</td>
+                                <td>R$ ${bem.valor.toFixed(2)}</td>
+                                <td>${pagamento}</td>
+                                <td>${parcelas}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    detalhesHtml += '</tbody></table>';
+                    document.getElementById('detalhesRelatorio').innerHTML = detalhesHtml;
+                })
+                .catch(error => {
+                    console.error(error);
+                    document.getElementById('resumoRelatorio').innerHTML = '<p class="text-danger">Erro ao carregar relatório</p>';
+                });
+        }
+
+        function gerarRelatorioGeral(fornecedorId, periodo) {
+            // Carregar todos os dados
+            Promise.all([
+                fetch(`/compras/fornecedor/${fornecedorId}`).then(r => r.json()),
+                fetch(`/vendas/fornecedor/${fornecedorId}`).then(r => r.json()),
+                fetch(`/bens/fornecedor/${fornecedorId}`).then(r => r.json()),
+                fetch(`/balanco/${fornecedorId}`).then(r => r.json())
+            ]).then(([compras, vendas, bens, balanco]) => {
+                // Exibir resumo geral
+                document.getElementById('resumoRelatorio').innerHTML = `
+                    <h6>Relatório Geral</h6>
+                    <p><strong>Capital Social:</strong> R$ ${balanco.capitalSocial.toFixed(2)}</p>
+                    <p><strong>Total de Compras:</strong> ${compras.length}</p>
+                    <p><strong>Total de Vendas:</strong> ${vendas.length}</p>
+                    <p><strong>Total de Bens:</strong> ${bens.length}</p>
+                    <p><strong>Patrimônio Líquido:</strong> R$ ${balanco.patrimonioLiquido.toFixed(2)}</p>
+                `;
+                
+                // Exibir estatísticas
+                const totalCompras = compras.reduce((sum, c) => sum + c.valorTotal, 0);
+                const totalVendas = vendas.reduce((sum, v) => sum + v.valor_total + v.icms, 0);
+                const totalBens = bens.reduce((sum, b) => sum + b.valor, 0);
+                
+                document.getElementById('estatisticasRelatorio').innerHTML = `
+                    <h6>Estatísticas Gerais</h6>
+                    <p><strong>Total Compras:</strong> R$ ${totalCompras.toFixed(2)}</p>
+                    <p><strong>Total Vendas:</strong> R$ ${totalVendas.toFixed(2)}</p>
+                    <p><strong>Total Bens:</strong> R$ ${totalBens.toFixed(2)}</p>
+                    <p><strong>Valores a Receber:</strong> R$ ${balanco.valoresAReceber.toFixed(2)}</p>
+                    <p><strong>Valores a Pagar:</strong> R$ ${balanco.valoresAPagar.toFixed(2)}</p>
+                `;
+                
+                // Exibir detalhes consolidados
+                let detalhesHtml = `
+                    <h6>Resumo Consolidado</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>Compras</h6>
+                            <p>Total: ${compras.length}</p>
+                            <p>Valor: R$ ${totalCompras.toFixed(2)}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Vendas</h6>
+                            <p>Total: ${vendas.length}</p>
+                            <p>Valor: R$ ${totalVendas.toFixed(2)}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Bens</h6>
+                            <p>Total: ${bens.length}</p>
+                            <p>Valor: R$ ${totalBens.toFixed(2)}</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('detalhesRelatorio').innerHTML = detalhesHtml;
+            }).catch(error => {
+                console.error(error);
+                document.getElementById('resumoRelatorio').innerHTML = '<p class="text-danger">Erro ao carregar relatório geral</p>';
+            });
+        }
+    </script>
+</body>
+</html> 
