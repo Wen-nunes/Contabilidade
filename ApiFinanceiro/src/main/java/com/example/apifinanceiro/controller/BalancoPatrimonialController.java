@@ -139,6 +139,24 @@ public class BalancoPatrimonialController {
             balanco.put("comprasPrazo", compras.stream().filter(CompraMercadoria::isPagamentoPrazo).count());
             balanco.put("comprasVista", compras.stream().filter(CompraMercadoria::isPagamentoVista).count());
             
+            // Informações detalhadas das compras parceladas
+            List<Map<String, Object>> comprasDetalhadas = compras.stream()
+                .map(compra -> {
+                    Map<String, Object> detalhes = new HashMap<>();
+                    detalhes.put("id", compra.getId());
+                    detalhes.put("nomeMercadoria", compra.getNomeMercadoria());
+                    detalhes.put("valorTotal", compra.getValorTotal());
+                    detalhes.put("dataCompra", compra.getDataCompra());
+                    detalhes.put("pagamentoVista", compra.isPagamentoVista());
+                    detalhes.put("pagamentoPrazo", compra.isPagamentoPrazo());
+                    detalhes.put("numeroParcelas", compra.getNumeroParcelas());
+                    detalhes.put("valorParcela", compra.getValorParcela());
+                    return detalhes;
+                })
+                .collect(java.util.stream.Collectors.toList());
+            
+            balanco.put("comprasDetalhadas", comprasDetalhadas);
+            
             // Detalhes dos bens
             balanco.put("totalBens", bens.size());
             balanco.put("bensPrazo", bens.stream().filter(Bem::isPagamentoPrazo).count());

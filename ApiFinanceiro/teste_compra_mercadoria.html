@@ -9,61 +9,92 @@
         .form-group { margin: 10px 0; }
         label { display: inline-block; width: 150px; }
         input, select { padding: 5px; margin: 5px; }
-        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
         .result { margin: 10px 0; padding: 10px; background-color: #f5f5f5; border-radius: 3px; }
         .error { color: red; }
         .success { color: green; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .compras-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        .compras-table th, .compras-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .compras-table th { background-color: #f2f2f2; }
+        .vista { background-color: #e8f5e8; }
+        .prazo { background-color: #fff3cd; }
     </style>
 </head>
 <body>
     <h1>Teste Compra de Mercadoria</h1>
     
-    <div class="form-group">
-        <label>Fornecedor ID:</label>
-        <input type="number" id="fornecedorId" value="1">
+    <div class="section">
+        <h2>Criar Nova Compra</h2>
+        <div class="form-group">
+            <label>Fornecedor ID:</label>
+            <input type="number" id="fornecedorId" value="1">
+        </div>
+        
+        <div class="form-group">
+            <label>Nome da Mercadoria:</label>
+            <input type="text" id="nomeMercadoria" value="Produto Teste">
+        </div>
+        
+        <div class="form-group">
+            <label>Descrição:</label>
+            <input type="text" id="descricao" value="Descrição do produto teste">
+        </div>
+        
+        <div class="form-group">
+            <label>Preço de Compra:</label>
+            <input type="number" id="precoCompra" value="50.00" step="0.01">
+        </div>
+        
+        <div class="form-group">
+            <label>Preço de Venda:</label>
+            <input type="number" id="precoVenda" value="75.00" step="0.01">
+        </div>
+        
+        <div class="form-group">
+            <label>Quantidade:</label>
+            <input type="number" id="quantidade" value="10">
+        </div>
+        
+        <div class="form-group">
+            <label>Forma de Pagamento:</label>
+            <select id="formaPagamento">
+                <option value="vista">À Vista</option>
+                <option value="prazo">A Prazo</option>
+            </select>
+        </div>
+        
+        <div class="form-group" id="parcelasContainer" style="display: none;">
+            <label>Número de Parcelas:</label>
+            <input type="number" id="numeroParcelas" value="3" min="1" max="12">
+        </div>
+        
+        <button onclick="criarCompra()">Criar Compra</button>
+        
+        <div id="resultado" class="result"></div>
     </div>
     
-    <div class="form-group">
-        <label>Nome da Mercadoria:</label>
-        <input type="text" id="nomeMercadoria" value="Produto Teste">
+    <div class="section">
+        <h2>Visualizar Compras do Fornecedor</h2>
+        <div class="form-group">
+            <label>Fornecedor ID:</label>
+            <input type="number" id="fornecedorIdConsulta" value="1">
+            <button onclick="consultarCompras()">Consultar Compras</button>
+        </div>
+        
+        <div id="resultadoConsulta" class="result"></div>
     </div>
     
-    <div class="form-group">
-        <label>Descrição:</label>
-        <input type="text" id="descricao" value="Descrição do produto teste">
+    <div class="section">
+        <h2>Balanço Patrimonial</h2>
+        <div class="form-group">
+            <label>Fornecedor ID:</label>
+            <input type="number" id="fornecedorIdBalanco" value="1">
+            <button onclick="consultarBalanco()">Consultar Balanço</button>
+        </div>
+        
+        <div id="resultadoBalanco" class="result"></div>
     </div>
-    
-    <div class="form-group">
-        <label>Preço de Compra:</label>
-        <input type="number" id="precoCompra" value="50.00" step="0.01">
-    </div>
-    
-    <div class="form-group">
-        <label>Preço de Venda:</label>
-        <input type="number" id="precoVenda" value="75.00" step="0.01">
-    </div>
-    
-    <div class="form-group">
-        <label>Quantidade:</label>
-        <input type="number" id="quantidade" value="10">
-    </div>
-    
-    <div class="form-group">
-        <label>Forma de Pagamento:</label>
-        <select id="formaPagamento">
-            <option value="vista">À Vista</option>
-            <option value="prazo">A Prazo</option>
-        </select>
-    </div>
-    
-    <div class="form-group" id="parcelasContainer" style="display: none;">
-        <label>Número de Parcelas:</label>
-        <input type="number" id="numeroParcelas" value="3" min="1" max="12">
-    </div>
-    
-    <button onclick="criarCompra()">Criar Compra</button>
-    
-    <div id="resultado" class="result"></div>
     
     <script>
         // Mostrar/esconder campo de parcelas
@@ -127,12 +158,173 @@
                     <p><strong>Valor Total:</strong> R$ ${data.valorTotal.toFixed(2)}</p>
                     <p><strong>Fornecedor:</strong> ${data.fornecedor ? data.fornecedor.nome : 'N/A'}</p>
                     <p><strong>Pagamento:</strong> ${data.pagamentoVista ? 'À Vista' : 'A Prazo'}</p>
+                    ${data.pagamentoPrazo ? `<p><strong>Número de Parcelas:</strong> ${data.numeroParcelas}</p>
+                    <p><strong>Valor da Parcela:</strong> R$ ${data.valorParcela ? data.valorParcela.toFixed(2) : 'N/A'}</p>` : ''}
                 `;
             })
             .catch(error => {
                 console.error('Erro:', error);
                 document.getElementById('resultado').innerHTML = `
                     <p class="error">Erro ao criar compra: ${error.message}</p>
+                `;
+            });
+        }
+        
+        function consultarCompras() {
+            const fornecedorId = parseInt(document.getElementById('fornecedorIdConsulta').value);
+            
+            fetch(`/compras/fornecedor/${fornecedorId}/detalhado`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Compras detalhadas:', data);
+                
+                let html = `
+                    <h3>Resumo das Compras - Fornecedor ID: ${data.fornecedorId}</h3>
+                    <p><strong>Total de Compras:</strong> ${data.totalCompras}</p>
+                    <p><strong>Compras à Vista:</strong> ${data.totalComprasVistaCount} - Total: R$ ${data.totalComprasVista.toFixed(2)}</p>
+                    <p><strong>Compras a Prazo:</strong> ${data.totalComprasPrazoCount} - Total: R$ ${data.totalComprasPrazo.toFixed(2)}</p>
+                `;
+                
+                if (data.comprasVista && data.comprasVista.length > 0) {
+                    html += `
+                        <h4>Compras à Vista</h4>
+                        <table class="compras-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Mercadoria</th>
+                                    <th>Quantidade</th>
+                                    <th>Valor Total</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    data.comprasVista.forEach(compra => {
+                        html += `
+                            <tr class="vista">
+                                <td>${compra.id}</td>
+                                <td>${compra.nomeMercadoria}</td>
+                                <td>${compra.quantidade}</td>
+                                <td>R$ ${compra.valorTotal.toFixed(2)}</td>
+                                <td>${new Date(compra.dataCompra).toLocaleString()}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                }
+                
+                if (data.comprasPrazo && data.comprasPrazo.length > 0) {
+                    html += `
+                        <h4>Compras a Prazo</h4>
+                        <table class="compras-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Mercadoria</th>
+                                    <th>Quantidade</th>
+                                    <th>Valor Total</th>
+                                    <th>Número de Parcelas</th>
+                                    <th>Valor da Parcela</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    data.comprasPrazo.forEach(compra => {
+                        html += `
+                            <tr class="prazo">
+                                <td>${compra.id}</td>
+                                <td>${compra.nomeMercadoria}</td>
+                                <td>${compra.quantidade}</td>
+                                <td>R$ ${compra.valorTotal.toFixed(2)}</td>
+                                <td>${compra.numeroParcelas}</td>
+                                <td>R$ ${compra.valorParcela ? compra.valorParcela.toFixed(2) : 'N/A'}</td>
+                                <td>${new Date(compra.dataCompra).toLocaleString()}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                }
+                
+                document.getElementById('resultadoConsulta').innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                document.getElementById('resultadoConsulta').innerHTML = `
+                    <p class="error">Erro ao consultar compras: ${error.message}</p>
+                `;
+            });
+        }
+        
+        function consultarBalanco() {
+            const fornecedorId = parseInt(document.getElementById('fornecedorIdBalanco').value);
+            
+            fetch(`/balanco/${fornecedorId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Balanço:', data);
+                
+                let html = `
+                    <h3>Balanço Patrimonial - Fornecedor ID: ${data.fornecedorId}</h3>
+                    <p><strong>Capital Social:</strong> R$ ${data.capitalSocial.toFixed(2)}</p>
+                    <p><strong>Patrimônio Líquido:</strong> R$ ${data.patrimonioLiquido.toFixed(2)}</p>
+                    <p><strong>Valores a Receber:</strong> R$ ${data.valoresAReceber.toFixed(2)}</p>
+                    <p><strong>Valores a Pagar:</strong> R$ ${data.valoresAPagar.toFixed(2)}</p>
+                    <p><strong>Valores a Pagar (Compras):</strong> R$ ${data.valoresAPagarCompras.toFixed(2)}</p>
+                    <p><strong>Vendas à Vista:</strong> R$ ${data.vendasAVista.toFixed(2)}</p>
+                    <p><strong>Compras à Vista:</strong> R$ ${data.comprasAVista.toFixed(2)}</p>
+                    <p><strong>Valor Total dos Bens:</strong> R$ ${data.valorTotalBens.toFixed(2)}</p>
+                `;
+                
+                if (data.comprasDetalhadas && data.comprasDetalhadas.length > 0) {
+                    html += `
+                        <h4>Detalhes das Compras</h4>
+                        <table class="compras-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Mercadoria</th>
+                                    <th>Valor Total</th>
+                                    <th>Tipo</th>
+                                    <th>Parcelas</th>
+                                    <th>Valor Parcela</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    data.comprasDetalhadas.forEach(compra => {
+                        const tipo = compra.pagamentoVista ? 'À Vista' : 'A Prazo';
+                        const classe = compra.pagamentoVista ? 'vista' : 'prazo';
+                        
+                        html += `
+                            <tr class="${classe}">
+                                <td>${compra.id}</td>
+                                <td>${compra.nomeMercadoria}</td>
+                                <td>R$ ${compra.valorTotal.toFixed(2)}</td>
+                                <td>${tipo}</td>
+                                <td>${compra.numeroParcelas || '-'}</td>
+                                <td>${compra.valorParcela ? 'R$ ' + compra.valorParcela.toFixed(2) : '-'}</td>
+                                <td>${new Date(compra.dataCompra).toLocaleString()}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                }
+                
+                document.getElementById('resultadoBalanco').innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                document.getElementById('resultadoBalanco').innerHTML = `
+                    <p class="error">Erro ao consultar balanço: ${error.message}</p>
                 `;
             });
         }
